@@ -8,6 +8,8 @@ import db from '../db.js';
 
 /* Function to get all users */
 
+/* Fucntion to get a specific user */
+
 /* Function to get all book items for a specific user */
 
 /* Function to sort by year read */

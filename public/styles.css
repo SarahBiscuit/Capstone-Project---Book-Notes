@@ -1,0 +1,8 @@
+navbar navbar-expand-lg custom-navbar.custom-navbar {
+    background-color: #ff7518;
+  }
+
+  custom-search-btn {
+    background-color: black;
+    font: white;
+  }

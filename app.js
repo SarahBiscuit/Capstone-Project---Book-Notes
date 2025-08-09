@@ -21,6 +21,10 @@ app.get('/', (req, res) => {
   });
 });
 
+app.get(/searchUser', async (req, res) => {
+    /* Gets a specific user's book items using the form in the header.ejs file */
+})
+
 app.post('/addBook', async (req, res) => {
   /* Handles form submission for adding a book */
 });

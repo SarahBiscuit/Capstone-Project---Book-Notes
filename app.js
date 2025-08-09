@@ -19,9 +19,8 @@ app.use(express.static('public'));
 app.get('/', (req, res) => {
   /* ADD THE RES.RENDER IN HERE */
   });
-});
 
-app.get(/searchUser', async (req, res) => {
+app.get('/searchUser', async (req, res) => {
     /* Gets a specific user's book items using the form in the header.ejs file */
 })
 

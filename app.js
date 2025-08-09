@@ -37,6 +37,14 @@ app.post('/addBookPage', async (req, res) => {
     /* Renders the new book form page */
 })
 
+app.post('/sortByYear', async (req, res) => {
+    /* Sorts books by year read */
+})
+
+app.post('/sortByRating', async (req, res) => {
+    /* Sorts books by rating */
+})
+
 app.post('/edit', async (req, res) => {
     /* Allows user to edit book details */
 })

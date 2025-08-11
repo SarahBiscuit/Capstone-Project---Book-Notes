@@ -15,7 +15,21 @@
     </div>
 </div>
 
+<div class="headerBoxes">
 <%# Header bar with user name in %>
+    <div class="container userheader">
+        <h2>
+            <span><b><%= userName ? `User Name - ${forename} ${surname}`: `Select a user to view their book recommendations` %></b></span>
+        </h2>
+    </div>
+
+<%# Sub Header %>
+    <div class="container bookNotesSubHeader">
+        <h3>
+            <span><b>Please see my book recommendations below</b></span>
+        </h3>
+    </div>
+</div>
 
 
 <%- include("partials/footer.ejs") %>

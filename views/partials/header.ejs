@@ -28,13 +28,13 @@
 
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav mr-auto">
-                <li class="nav-item active">
+                <li class="nav-item <%= activePage === 'home' ? 'active' : '' %>">
                     <a class="nav-link text-white" href="/">Home</a>
                 </li>
-                <li class="nav-item">
+                <li class="nav-item <%= activePage === 'addBook' ? 'active' : '' %>">
                     <a class="nav-link text-white" href="/addBook">Add Book</a>
                 </li>
-                <li class="nav-item">
+                <li class="nav-item <%= activePage === 'addUser' ? 'active' : '' %>">
                     <a class="nav-link text-white" href="/addUser">Add New User</a>
                 </li>
             </ul>

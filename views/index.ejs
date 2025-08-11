@@ -31,5 +31,43 @@
     </div>
 </div>
 
+<%# For each function to generate bootstrap cards for each book.  Want to rewrite it as jquery.  %>
+<div class="container mt-4">
+  <div class="row">
+    
+<% if (books && books.length > 0) { %>
+  <% books.forEach(function(book) { %>
+    <div class="col-lg-4 col-md-6 col-12 mb-4">
+      <div class="card h-100">
+        <img src="<%= book.img || '' %>" class="card-img-top" alt="Book image">
+        <div class="card-body">
+          <h5 class="card-title"><%= book.title || '' %></h5>
+          <p class="card-text"><%= book.author || '' %></p>
+          <p class="card-text"><%= book.rating || '' %></p>
+          <p class="card-text"><%= book.yearRead || '' %></p>
+          <p class="card-text"><%= book.guidanceNotes || '' %></p>
+          
+        <!-- Edit Form -->
+          <form action="/books/<%= book.id %>/edit" method="GET" style="display:inline;">
+            <button type="submit" class="btn btn-warning">Edit</button>
+          </form>
+
+          <!-- Delete Form -->
+          <form action="/books/<%= book.id %>?_method=DELETE" method="POST" style="display:inline;">
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this book?');">Delete</button>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  <% }) %>
+<% } else { %>
+  <div class="col-12">
+    <div class="alert alert-info" role="alert">
+      No books found for this user. Please add some books.
+    </div>
+  </div>
+<% } %>
+</div>
 
 <%- include("partials/footer.ejs") %>

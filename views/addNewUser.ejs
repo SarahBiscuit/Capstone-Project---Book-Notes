@@ -3,7 +3,7 @@
 <div class="container headerBoxes">
 <%# Main header %>
     <div class="container bookNotesHeader">
-        <h1><span><b>Add New user</b></span></h1>
+        <h1><span><b>Add New User</b></span></h1>
     </div>
 <%# Sub Header %>
     <div class="container bookNotesSubHeader">
@@ -18,15 +18,22 @@
     <%# Want to add a form in to add a new user, and have an image floating to the right of the form (to change to below it on smaller screens) %>
     <div class="row">
         <div class="col-md-6 col-sm-12">
-            <form action="/users" method="POST">
+            <form action="/addUser" method="POST">
                 <div class="form-group mb-3">
                     <label for="first_name">Forename: </label>
                     <input type="text" class="form-control" id="first_name" name="forename" required>
                     <label for="surname">Surname: </label>
                     <input type="text" class="form-control" id="surname" name="surname" required>
                 </div>
+                
+            <!-- Submit Button -->
+                <button type="submit" class="btn btn-primary">Submit</button>
             </form>
-            <img src="#" alt="Image of a book" class="img-fluid float-right" style="max-width: 300px; max-height: 300px;" />
+        </div>
+
+        <!-- Book Image (floats right on larger screens, stacks on smaller) -->
+        <div class="col-md-6 col-sm-12 text-center mt-3">
+            <img src="#" alt="Image of a book" class="img-fluid" style="max-width: 300px; max-height: 300px;" />
         </div>
     </div>
 </div>

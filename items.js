@@ -75,7 +75,20 @@ export async function getAllBooks() {
 
 
 /* Function to get all book items for a specific user */
-
+export async function getBooksByUser({ forename, surname }) {
+  const query = `
+  SELECT b.book_id, b.title, b.author, b.year_read, b.rating, b.guidance_notes, u.surname, u.forename
+  FROM books b
+  JOIN users u on b.user_id = u.user_id
+  WHERE u.forename ILIKE $1 AND u.surname ILIKE $2
+  ORDER BY u.surname ASC, u.forename ASC, b.author ASC, b.title ASC;
+  `
+  const result = await db.query(query, [forename, surname]);
+  if (result.rowCount === 0) {
+    throw new Error('No books found for the specified user');
+  }
+  return result.rows;
+}
 
 
 /* Function to get all users */

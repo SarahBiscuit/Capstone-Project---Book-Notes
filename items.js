@@ -3,21 +3,39 @@ import db from '../db.js';
 /* Function to add a new book item */
 export async function addNewBook({ title, author, yearRead, rating, guidanceNotes, forename, surname }) {
   // 1. Look up userId from forename and surname
-  const userQuery = 'SELECT id FROM users WHERE forename ILIKE $1 AND surname ILIKE $2 LIMIT 1';
+  const userQuery = 'SELECT user_id FROM users WHERE forename ILIKE $1 AND surname ILIKE $2 LIMIT 1';
   const userResult = await db.query(userQuery, [forename, surname]);
 
   if (userResult.rowCount === 0) {
     throw new Error('User not found with the provided forename and surname');
   }
 
-  const userId = userResult.rows[0].id;
+  const userId = userResult.rows[0].user_id;
 
-  // 2. Insert the book with found userId
+  //Check if user and book id are already in the userReads table
+  const userBookMatchExistsQuery = `
+  SELECT * from userReads
+  WHERE user_id = $1 AND book_id = (SELECT id FROM books WHERE title ILIKE $2 AND author ILIKE $3 LIMIT 1);`
+  const userBookMatch = await db.query(userBookMatchExistsQuery, [userId, title, author});
+  if (userBookMatch.rowCount > 0) {
+    throw new Error(`This book is already associated with the user ${forename} ${surname}`);
+  }
+
+  // 2. Insert the book with found userId into the books table
   const insertQuery = `
     INSERT INTO books (title, author, year_read, rating, guidance_notes, user_id)
     VALUES ($1, $2, $3, $4, $5, $6)
+    RETURNING id
   `;
-  await db.query(insertQuery, [title, author, yearRead, rating, guidanceNotes, userId]);
+  const insertBookResult = await db.query(insertQuery, [title, author, yearRead, rating, guidanceNotes, userId]);
+  const bookId = insertBookResult.rows[0].book_id;
+
+  //3. Link the book and the user in the userReads table
+  const userReadsInsertQuery = `
+    INSERT INTO userReads (user_id, book_id)
+    VALUES ($1, $2)
+  `;
+  await db.query(userReadsInsertQuery, [userId, bookId]);
 }
 
 /* Function to add a new user */
@@ -39,11 +57,11 @@ if (alreadyMatch.rowCount > 0) {
 
 /* Function to get all book items */
 
+/* Function to get all book items for a specific user */
+
 /* Function to get all users */
 
 /* Fucntion to get a specific user */
-
-/* Function to get all book items for a specific user */
 
 /* Function to sort by year read */
 

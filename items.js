@@ -21,6 +21,21 @@ export async function addNewBook({ title, author, yearRead, rating, guidanceNote
 }
 
 /* Function to add a new user */
+export async function addNewUser({ forename, surname }) {
+
+  //1. Check if the user already exists
+const checkQuery = 'SELECT id FROM users WHERE forename ILIKE $1 AND surname ILIKE $2';
+const alreadyMatch = await db.query(checkQuery, [forename, surname]);
+if (alreadyMatch.rowCount > 0) {
+  throw new Error('User already exists with the provided forename and surname');
+}
+
+ //2. Insert the new user
+ const insertQuery = `
+    INSERT INTO users (forename, surname)
+    VALUES ($1, $2)`;
+    await db.query(insertQuery, [forename, surname]);
+}
 
 /* Function to get all book items */
 

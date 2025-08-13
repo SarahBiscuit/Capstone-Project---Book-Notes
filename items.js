@@ -123,7 +123,21 @@ export async function getUser({ forename, surname }) {
 }
 
 
-/* Function to sort by year read */
+/* Function to sort books by year read (want the button executing this query to sort all books on both a
+specific user's page, and on a page where all the users books show.  Will this work?  Might need to rewrite
+this with an if else to say do this if a specific user is selected and do this if one is not and all
+books are showing) */
+export async function sortByYearRead() {
+  const query = `
+  SELECT b.book_id, b.title, b.author, b.year_read, b.rating, b.guidance_notes
+  FROM books b
+  ORDER BY b.year_read DESC, b.author ASC, b.title ASC;`
+  const result = await db.query(query);
+  if (result.rowCount === 0) {
+    throw new Error('No books found');
+  }
+  return result.rows;
+  }
 
 
 

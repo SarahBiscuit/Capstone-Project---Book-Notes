@@ -92,6 +92,18 @@ export async function getBooksByUser({ forename, surname }) {
 
 
 /* Function to get all users */
+export async function getAllUsers() {
+  const query = `
+  SELECT user_id, forename, surname
+  FROM users
+  ORDER BY surname ASC, forename ASC
+  `;
+  const result = await db.query(query, [forename, surname]);
+  if (result.rowCount === 0) {
+    throw new Error('No users found]');
+  }
+  return result.rows;
+}
 
 
 

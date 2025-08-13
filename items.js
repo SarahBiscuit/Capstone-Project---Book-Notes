@@ -38,6 +38,8 @@ export async function addNewBook({ title, author, yearRead, rating, guidanceNote
   await db.query(userReadsInsertQuery, [userId, bookId]);
 }
 
+
+
 /* Function to add a new user */
 export async function addNewUser({ forename, surname }) {
 
@@ -55,19 +57,46 @@ if (alreadyMatch.rowCount > 0) {
     await db.query(insertQuery, [forename, surname]);
 }
 
+
+
 /* Function to get all book items */
+export async function getAllBooks() {
+  const query = `
+  SELECT b.book_id, b.title, b.author, b.year_read, b.rating, b.guidance_notes, u.surname, u.forename
+  FROM books b
+  JOIN users u on b.user_id = u.user_id
+  ORDER BY u.surname ASC, u.forename ASC, b.author ASC, b.title ASC;
+  `
+
+  const result = await db.query(query);
+  return result.rows;
+}
+
+
 
 /* Function to get all book items for a specific user */
 
+
+
 /* Function to get all users */
+
+
 
 /* Fucntion to get a specific user */
 
+
+
 /* Function to sort by year read */
+
+
 
 /* Function to sort by rating */
 
+
+
 /* Function to edit a book item */
+
+
 
 /* Function to delete a book item */
 

@@ -107,8 +107,20 @@ export async function getAllUsers() {
 
 
 
-/* Fucntion to get a specific user */
-
+/* Function to get a specific user */
+export async function getUser({ forename, surname }) {
+  const query = `
+  SELECT user_id, forename, surname
+  FROM users 
+  WHERE forename ILIKE $1 AND surname ILIKE $2
+  ORDER BY surname ASC, forename ASC
+  `;
+  const result = await db.query(query, [forename, surname]);
+  if (result.rowCount === 0) {
+    throw new Error('No user found with the provided forename and surname');
+  }
+  return result.rows[0];
+}
 
 
 /* Function to sort by year read */

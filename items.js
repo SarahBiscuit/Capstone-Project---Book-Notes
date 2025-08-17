@@ -168,9 +168,48 @@ export async function sortByYearRead(forename, surname) {
 
 
 /* Function to sort by rating */
-//Want to add in the option to filter by user, so that a user can see their books sorted by rating, and//
-//have both sorts (for all books and for a specific users' books) work by clicking a button on the page).//
-export async function sortByRating() {}
+export async function sortByRating(forename, surname) {
+  if (!forename || !surname) {
+    // No user selected – return all books sorted by rating
+    const query = `
+      SELECT b.book_id, b.title, b.author, b.year_read, b.rating, b.guidance_notes
+      FROM books b
+      ORDER BY b.rating ASC, b.author ASC, b.title ASC;
+    `;
+    const result = await db.query(query);
+
+    if (result.rowCount === 0) {
+      throw new Error('No books found');
+    }
+
+    return result.rows;
+  } else {
+    // User selected – return only that user's books
+    const user = await getUser({ forename, surname });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const userId = user.user_id;
+    const query = `
+      SELECT b.book_id, b.title, b.author, b.year_read, b.rating, b.guidance_notes
+      FROM books b
+      WHERE b.user_id = $1
+      ORDER BY b.rating ASC, b.author ASC, b.title ASC;
+    `;
+
+    const result = await db.query(query, [userId]);
+
+    if (result.rowCount === 0) {
+      throw new Error('No books found for this user');
+    }
+
+    return result.rows;
+  }
+}
+
+
 
 /* Function to edit a book item */
 

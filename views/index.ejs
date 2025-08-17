@@ -57,6 +57,18 @@
             <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this book?');">Delete</button>
           </form>
 
+          <!-- Sort By Rating -->
+           <form action="/sortByRating" method="GET" style="display:inline;">
+            <input type="hidden" name="userId" value="<%= userId %>">"
+            <button type="submit" class="btn btn-primary">Sort By Rating</button>
+           </form>
+
+           <!-- Sort By Year Read -->
+           <form action="/sortYearRead" method="GET" style="display:inline;">
+            <input type="hidden" name="userId" value="<%= userId %>">"
+            <button type="submit" class="btn btn-primary">Sort By Year the User Read it in</button>
+           </form>
+
         </div>
       </div>
     </div>

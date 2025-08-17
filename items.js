@@ -124,6 +124,7 @@ export async function getUser({ forename, surname }) {
 
 
 /* Function to sort all books by year read */
+//Can I make this function shorter and less repetitive?//
 export async function sortByYearRead(forename, surname) {
   if (!forename || !surname) {
     // No user selected – return all books sorted by year read
@@ -168,6 +169,7 @@ export async function sortByYearRead(forename, surname) {
 
 
 /* Function to sort by rating */
+//Can I make this function shorter and less repetitive?//
 export async function sortByRating(forename, surname) {
   if (!forename || !surname) {
     // No user selected – return all books sorted by rating

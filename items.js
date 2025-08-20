@@ -124,7 +124,6 @@ export async function getUser({ forename, surname }) {
 
 
 /* Function to sort all books by year read */
-//Can I make this function shorter and less repetitive?//
 export async function sortByYearRead(forename, surname) {
   if (!forename || !surname) {
     // No user selected – return all books sorted by year read
@@ -140,6 +139,7 @@ export async function sortByYearRead(forename, surname) {
     }
 
     return result.rows;
+
   } else {
     // User selected – return only that user's books
     const user = await getUser({ forename, surname });
@@ -185,6 +185,7 @@ export async function sortByRating(forename, surname) {
     }
 
     return result.rows;
+
   } else {
     // User selected – return only that user's books
     const user = await getUser({ forename, surname });
@@ -214,7 +215,12 @@ export async function sortByRating(forename, surname) {
 
 
 /* Function to edit a book item */
-
+export async function editBook({ bookId, title, author, yearRead, rating, guidancenotes}) {
+  const query = `
+    UPDATE books
+    SET title = $1, author = $2, year_read = $3, rating = $4, guidance_notes = $5`;
+    await db.query(query, [title, author, yearRead, rating, guidanceNotes]);
+}
 
 
 /* Function to delete a book item */

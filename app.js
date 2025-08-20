@@ -14,8 +14,8 @@ app.use(express.static('public'));
 /* Render blank index.js page */
 app.get('/', async (req, res) => {
     try {
-        //use sortByRating to get all books sorted by rating (no default user selected)//
-        const books = await sortByRating();
+        //use sortByRating to get all books (no default user selected)//
+        const books = await getAllBooks();
         res.render('index', { books });
     } catch (error) {
         console.error('Error fetching books:', error.stack);
@@ -25,6 +25,15 @@ app.get('/', async (req, res) => {
 
 app.get('/searchUser', async (req, res) => {
     /* Gets a specific user's book items using the form in the header.ejs file */
+    try {
+        const { forename, surname } = req.query;
+        const books = await getBooksByUser({ forename, surname});
+        res.render('index', { books});
+    } catch (error) {
+        console.error('Error fetching books:', error.stack);
+        res.status(500).send('Internal Server Error');
+    }
+    }
 })
 
 app.post('/addBook', async (req, res) => {

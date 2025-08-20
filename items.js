@@ -224,4 +224,8 @@ export async function editBook({ bookId, title, author, yearRead, rating, guidan
 
 
 /* Function to delete a book item */
-
+// Function to delete an item by id
+export async function deleteItem(bookId) {
+  const query = `DELETE FROM books WHERE book_id = $1`;
+  await db.query(query, [bookId]);
+}

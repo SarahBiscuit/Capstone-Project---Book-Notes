@@ -3,11 +3,7 @@
 import express from "express";
 import bodyParser from "body-parser";
 
-/* Lifted from my to do list website.
-
-Add a version of this for the book notes website, once I have written the items.js.
-
-import { addItem, getItems, deleteItem } from './api/items.js'; */
+import { addNewBook, addNewUser, getAllBooks, getBooksByUser, getAllUsers, getUser, sortByYearRead, sortByRating, editBook, deleteItem } from './api/items.js';
 
 const app = express();
 
@@ -15,10 +11,17 @@ app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
-/* Render blank index.js page with default user */
-app.get('/', (req, res) => {
-  /* ADD THE RES.RENDER IN HERE */
-  });
+/* Render blank index.js page */
+app.get('/', async (req, res) => {
+    try {
+        //use sortByRating to get all books sorted by rating (no default user selected)//
+        const books = await sortByRating();
+        res.render('index', { books });
+    } catch (error) {
+        console.error('Error fetching books:', error.stack);
+        res.status(500).send('Internal Server Error');
+}
+});  
 
 app.get('/searchUser', async (req, res) => {
     /* Gets a specific user's book items using the form in the header.ejs file */

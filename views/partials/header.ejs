@@ -43,10 +43,19 @@
             <form class="form-inline my-2 my-lg-0" action="/searchUser" method="GET">
                 <input
                     class="form-control mr-sm-2"
-                    type="search"
-                    name="name"
-                    placeholder="Search by name"
-                    aria-label="Search"
+                    type="text"
+                    name="forename"
+                    placeholder="Forename"
+                    aria-label="Forename"
+                    required
+                />
+                <input
+                    class="form-control mr-sm-2"
+                    type="text"
+                    name="surname"
+                    placeholder="Surname"
+                    aria-label="Surname"
+                    required
                 />
                 <button class="btn custom-search-btn my-2 my-sm-0" type="submit">Search</button>
             </form>

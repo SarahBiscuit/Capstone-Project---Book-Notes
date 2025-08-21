@@ -78,7 +78,7 @@ app.post('/addBookPage', async (req, res) => {
     /* Renders the new book form page */
 })
 
-app.post('/searchForUser', async (req, res) => {
+app.get('/searchUser', async (req, res) => {
     //Handles the search for a user in the header.ejs file
 })
 

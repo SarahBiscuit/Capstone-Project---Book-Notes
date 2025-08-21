@@ -98,6 +98,20 @@ app.get('/addBook', async (req, res) => {
 
 app.get('/searchUser', async (req, res) => {
     //Handles the search for a user in the header.ejs file
+    try { 
+        const { forename, surname } = req.query;
+
+        if (!forename || !surname) {
+      return res.status(400).send('Please provide both forename and surname');
+    }
+
+    //Fetch books for the specified user
+        const books = await getBooksByUser({ forename, surname });
+        res.render('index', { books, forename, surname });
+    } catch (error) {
+        console.error('Error fetching books by user:', error.stack);
+        res.status(500).send('Internal Server Error');
+    }
 })
 
 app.post('/sortByYear', async (req, res) => {

@@ -153,6 +153,9 @@ app.post('/edit', async (req, res) => {
 
 app.post('/delete', async (req, res) => {
     /* Allows user to delete a book */
+    try {
+        //Write route here
+    }
 })
 
 app.listen(3000, () => {

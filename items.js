@@ -238,7 +238,11 @@ export async function editBook({ bookId, title, author, yearRead, rating, guidan
 
 /* Function to delete a book item */
 // Function to delete an item by id
-export async function deleteItem(bookId) {
-  const query = `DELETE FROM books WHERE book_id = $1`;
-  await db.query(query, [bookId]);
+export async function deleteItem(book_id, forename, surname) {
+  const user = await getUser({ forename, surname });
+  //Get user id for the above
+  const result = user.rows;
+  const userId = result.rows.id;
+  const query = `DELETE FROM books WHERE book_id = $1 AND user_id = $2`;
+  await db.query(query, [book_id, userId});
 }

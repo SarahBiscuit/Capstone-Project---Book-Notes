@@ -116,10 +116,26 @@ app.get('/searchUser', async (req, res) => {
 
 app.post('/sortByYear', async (req, res) => {
     /* Sorts books by year read */
+    try {
+        const {forename, surname} = req.body;
+        const books = await sortByYearRead({ forename, surname });
+        res.render('index', { books, forename, surname });
+    } catch (error) {
+        console.error('Error sorting books by year:', error.stack);
+        res.status(500).send('Internal Server Error');
+    }
 })
 
 app.post('/sortByRating', async (req, res) => {
     /* Sorts books by rating */
+    try {
+        const {forename, surname} = req.body;
+        const books = await sortByRating({ forename, surname });
+        res.render('index', { books, forename, surname });
+    } catch (error) {
+        console.error('Error sorting books by rating:', error.stack);
+        res.status(500).send('Internal Server Error');
+    }
 })
 
 app.post('/edit', async (req, res) => {

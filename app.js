@@ -38,18 +38,48 @@ app.get('/searchUser', async (req, res) => {
 
 app.post('/addBook', async (req, res) => {
   /* Handles form submission for adding a book */
+  try {
+        const { title, author, yearRead, rating, guidanceNotes, forename, surname } = req.body;
+        await addNewBook({ title, author, yearRead, rating, guidanceNotes, forename, surname });
+    // Redirect to show that specific user's book list
+        const books = await getBooksByUser({ forename, surname });
+        res.render('index', { books, forename, surname });
+  } catch (error) {
+        console.error('Error adding book:', error.stack);
+        res.status(500).send('Internal Server Error');
+  }
 });
 
 app.post ('/addUser', async (req, res) => {
     /* Handles form submission for adding a user */
+    try {
+        const { forename, surname } = req.body;
+        await addNewUser({ forename, surname });
+        const books = await getBooksByUser({ forename, surname });
+        res.render('index', {books, forename, surname });
+    } catch (error) {
+        console.error('Error adding user:', error.stack);
+        res.status(500).send('Internal Server Error');
+    }
+    }
 })
 
 app.post('/addUserPage', async (req, res) => {
     /* Renders the new user form page */
+    try {
+        res.render('/addUserPage');
+    } catch (error) {
+        console.error('Error rendering add user page:', error.stack);
+        res.status(500).send('Internal Server Error');
+    }
 })
 
 app.post('/addBookPage', async (req, res) => {
     /* Renders the new book form page */
+})
+
+app.post('/searchForUser', async (req, res) => {
+    //Handles the search for a user in the header.ejs file
 })
 
 app.post('/sortByYear', async (req, res) => {

@@ -67,28 +67,39 @@
 
           <div class="mb-3">
             <label for="title" class="form-label">Title</label>
-            <input type="text" name="title" id="title" class="form-control" value="<%= book.title %>" required />
+            <input type="text" name="title" id="title" class="form-control" value="<%= book.title %>" />
           </div>
 
           <div class="mb-3">
             <label for="author" class="form-label">Author</label>
-            <input type="text" name="author" id="author" class="form-control" value="<%= book.author %>" required />
+            <input type="text" name="author" id="author" class="form-control" value="<%= book.author %>" />
           </div>
 
           <div class="mb-3">
             <label for="year_read" class="form-label">Year You Read This Book</label>
-            <input type="number" name="year_read" id="year_read" class="form-control" value="<%= book.year_read %>" required />
+            <input type="number" name="year_read" id="year_read" class="form-control" value="<%= book.year_read %>" />
           </div>
 
           <div class="mb-3">
             <label for="rating" class="form-label">Rating</label>
-            <input type="number" name="rating" id="rating" class="form-control" value="<%= book.rating %>" min="1" max="10" required />
+            <input type="number" name="rating" id="rating" class="form-control" value="<%= book.rating %>" min="1" max="10" />
           </div>
 
           <div class="mb-3">
             <label for="guidance_notes" class="form-label">Your Book Review</label>
             <textarea name="guidance_notes" id="guidance_notes" class="form-control"><%= book.guidance_notes || '' %></textarea>
           </div>
+
+          <div class="mb-3">
+            <label for="forename" class="form-label">User Forename</label>
+            <textarea name="forename" id="forename" class="form-control"><%= book.forename || '' required%></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label for="surname" class="form-label">User Forename</label>
+            <textarea name="surname" id="surname" class="form-control"><%= book.surname || '' required%></textarea>
+          </div>
+
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>

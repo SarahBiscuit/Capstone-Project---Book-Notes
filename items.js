@@ -215,11 +215,24 @@ export async function sortByRating(forename, surname) {
 
 
 /* Function to edit a book item */
-export async function editBook({ bookId, title, author, yearRead, rating, guidancenotes}) {
-  const query = `
+export async function editBook({ bookId, title, author, yearRead, rating, guidanceNotes, forename, surname}) {
+    const user = await getUser({ forename, surname });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    //If one field is not provide do not update it
+    const query = `
     UPDATE books
-    SET title = $1, author = $2, year_read = $3, rating = $4, guidance_notes = $5`;
-    await db.query(query, [title, author, yearRead, rating, guidanceNotes]);
+      SET title = COALESCE($1, title),
+      author = COALESCE($2, author),
+      year_read = COALESCE($3, year_read),
+      rating = COALESCE($4, rating),
+      guidance_notes = COALESCE($5, guidance_notes),
+      WHERE book_id = $6 AND user_id = $7
+    `;
+    const values = [title, author, yearRead, rating, guidanceNotes, bookId, user.user_id];
 }
 
 

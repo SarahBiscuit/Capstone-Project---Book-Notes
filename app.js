@@ -140,6 +140,15 @@ app.post('/sortByRating', async (req, res) => {
 
 app.post('/edit', async (req, res) => {
     /* Allows user to edit book details */
+    try {
+        const { book_id, title, author, yearRead, rating, guidanceNotes, forename, surname } = req.body;
+        await editBook({ book_id, title, author, yearRead, rating, guidanceNotes, forename, surname });
+        const books = await getBooksByUser({ forename, surname });
+        res.render('index', { books, forename, surname });
+        } catch (error) {
+            console.error('Error editing book:', error.stack);
+            res.status(500).send('Internal Server Error');
+        }
 })
 
 app.post('/delete', async (req, res) => {

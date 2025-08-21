@@ -14,7 +14,7 @@ app.use(express.static('public'));
 /* Render blank index.js page */
 app.get('/', async (req, res) => {
     try {
-        //use sortByRating to get all books (no default user selected)//
+        //Get all books (no default user selected)//
         const books = await getAllBooks();
         res.render('index', { books });
     } catch (error) {
@@ -64,18 +64,36 @@ app.post ('/addUser', async (req, res) => {
     }
 })
 
-app.post('/addUserPage', async (req, res) => {
+app.get('/addUser', async (req, res) => {
     /* Renders the new user form page */
     try {
-        res.render('/addUserPage');
+        res.render('/addNewUser');
     } catch (error) {
         console.error('Error rendering add user page:', error.stack);
         res.status(500).send('Internal Server Error');
     }
 })
 
-app.post('/addBookPage', async (req, res) => {
+app.get('/Home', async (req, res) => {
+    /* renders the home page */
+    try {
+        //Get all books (no default user selected)//
+        const books = await getAllBooks();
+        res.render('index', { books });
+    } catch (error) {
+        console.error('Error fetching books:', error.stack);
+        res.status(500).send('Internal Server Error');
+}
+});  
+
+app.get('/addBook', async (req, res) => {
     /* Renders the new book form page */
+    try { 
+        res.render('/addNewBook');
+    } catch (error) {
+        console.error('Error rendering add book page:', error.stack);
+        res.status(500).send('Internal Server Error');
+    }
 })
 
 app.get('/searchUser', async (req, res) => {

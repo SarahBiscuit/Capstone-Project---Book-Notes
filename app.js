@@ -152,11 +152,30 @@ app.post('/edit', async (req, res) => {
 })
 
 app.post('/delete', async (req, res) => {
-    /* Allows user to delete a book */
-    try {
-        //Write route here
+  try {
+    const { book_id, user_id } = req.body;
+
+    const userResult = await getUserById(user_id);
+
+    if (!userResult) {
+      return res.status(404).send('User not found');
     }
-})
+
+    const { forename, surname } = userResult;
+
+    // Call deleteItem with correct parameters
+    await deleteItem(book_id, forename, surname);
+
+    // Fetch updated books list for the user
+    const books = await getBooksByUser({ forename, surname });
+
+    res.render('index', { books, forename, surname });
+
+  } catch (error) {
+    console.error('Error deleting book:', error.stack);
+    res.status(500).send('Internal Server Error');
+  }
+});
 
 app.listen(3000, () => {
   console.log('Server running on port 3000');

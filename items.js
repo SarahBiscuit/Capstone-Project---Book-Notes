@@ -249,3 +249,9 @@ export async function deleteItem(book_id, forename, surname) {
   const query = `DELETE FROM books WHERE book_id = $1 AND user_id = $2`;
   await db.query(query, [book_id, userId]);
 }
+
+//Function to get user by id
+async function getUserById(user_id) {
+  const result = await db.query('SELECT forename, surname FROM users WHERE user_id = $1', [user_id]);
+  return result.rows[0];
+}

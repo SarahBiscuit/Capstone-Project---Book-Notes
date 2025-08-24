@@ -1,46 +1,66 @@
 import db from '../db.js';
 
-/* Function to add a new book item */
+/* 1.  Function to add a new book item */
 export async function addNewBook({ title, author, yearRead, rating, guidanceNotes, forename, surname }) {
-  // 1. Look up userId from forename and surname
-  const userQuery = 'SELECT user_id FROM users WHERE forename ILIKE $1 AND surname ILIKE $2 LIMIT 1';
+  //Look up userId from forename and surname
+  const userQuery = 'SELECT id FROM users WHERE first_name ILIKE $1 AND surname ILIKE $2 LIMIT 1';
   const userResult = await db.query(userQuery, [forename, surname]);
 
   if (userResult.rowCount === 0) {
     throw new Error('User not found with the provided forename and surname');
   }
 
-  const userId = userResult.rows[0].user_id;
+  const userId = userResult.rows[0].id;
 
   //Check if user and book id are already in the userReads table
   const userBookMatchExistsQuery = `
-  SELECT * from userReads
-  WHERE user_id = $1 AND book_id = (SELECT id FROM books WHERE title ILIKE $2 AND author ILIKE $3 LIMIT 1);`
-  const userBookMatch = await db.query(userBookMatchExistsQuery, [userId, title, author});
+    SELECT * FROM userReads
+    WHERE user_id = $1 
+      AND book_id = (
+        SELECT id FROM titlesAuthors WHERE title ILIKE $2 AND author ILIKE $3 LIMIT 1
+      );
+  `;
+  const userBookMatch = await db.query(userBookMatchExistsQuery, [userId, title, author]);
   if (userBookMatch.rowCount > 0) {
     throw new Error(`This book is already associated with the user ${forename} ${surname}`);
   }
 
-  // 2. Insert the book with found userId into the books table
-  const insertQuery = `
-    INSERT INTO books (title, author, year_read, rating, guidance_notes, user_id)
-    VALUES ($1, $2, $3, $4, $5, $6)
-    RETURNING id
+  //Insert or get existing title/author in titlesAuthors
+  const findOrInsertTitleAuthorQuery = `
+    INSERT INTO titlesAuthors (title, author)
+    VALUES ($1, $2)
+    ON CONFLICT (title, author) DO UPDATE SET title = EXCLUDED.title
+    RETURNING id;
   `;
-  const insertBookResult = await db.query(insertQuery, [title, author, yearRead, rating, guidanceNotes, userId]);
-  const bookId = insertBookResult.rows[0].book_id;
+  const titleAuthorResult = await db.query(findOrInsertTitleAuthorQuery, [title, author]);
+  const titleAuthorId = titleAuthorResult.rows[0].id;
 
-  //3. Link the book and the user in the userReads table
-  const userReadsInsertQuery = `
+  //Insert or get userReads entry linking user and book
+  const findOrInsertUserReadsQuery = `
     INSERT INTO userReads (user_id, book_id)
     VALUES ($1, $2)
+    ON CONFLICT (user_id, book_id) DO UPDATE SET user_id = EXCLUDED.user_id
+    RETURNING id;
   `;
-  await db.query(userReadsInsertQuery, [userId, bookId]);
+  const userReadsResult = await db.query(findOrInsertUserReadsQuery, [userId, titleAuthorId]);
+  const userReadsId = userReadsResult.rows[0].id;
+
+  //Insert book reading details linked to userReads
+  const insertBookQuery = `
+    INSERT INTO books (user_id, book_id, year_I_read_it, my_rating, guidance_notes)
+    VALUES ($1, $2, $3, $4, $5)
+    RETURNING id;
+  `;
+
+  const insertBookResult = await db.query(insertBookQuery, [userId, titleAuthorId, yearRead, rating, guidanceNotes]);
+  const bookEntryId = insertBookResult.rows[0].id;
+
+  return bookEntryId;
 }
 
 
 
-/* Function to add a new user */
+/* 2.  Function to add a new user */
 export async function addNewUser({ forename, surname }) {
 
   //1. Check if the user already exists
@@ -59,7 +79,7 @@ if (alreadyMatch.rowCount > 0) {
 
 
 
-/* Function to get all book items */
+/* 3.  Function to get all book items */
 export async function getAllBooks() {
   const query = `
   SELECT b.book_id, b.title, b.author, b.year_read, b.rating, b.guidance_notes, u.surname, u.forename
@@ -74,7 +94,7 @@ export async function getAllBooks() {
 
 
 
-/* Function to get all book items for a specific user */
+/* 4.  Function to get all book items for a specific user */
 export async function getBooksByUser({ forename, surname }) {
   const query = `
   SELECT b.book_id, b.title, b.author, b.year_read, b.rating, b.guidance_notes, u.surname, u.forename
@@ -91,7 +111,7 @@ export async function getBooksByUser({ forename, surname }) {
 }
 
 
-/* Function to get all users */
+/* 5.  Function to get all users */
 export async function getAllUsers() {
   const query = `
   SELECT user_id, forename, surname
@@ -107,7 +127,7 @@ export async function getAllUsers() {
 
 
 
-/* Function to get a specific user */
+/* 6.  Function to get a specific user */
 export async function getUser({ forename, surname }) {
   const query = `
   SELECT user_id, forename, surname
@@ -123,7 +143,7 @@ export async function getUser({ forename, surname }) {
 }
 
 
-/* Function to sort all books by year read */
+/* 7.  Function to sort all books by year read */
 export async function sortByYearRead(forename, surname) {
   if (!forename || !surname) {
     // No user selected – return all books sorted by year read
@@ -168,7 +188,7 @@ export async function sortByYearRead(forename, surname) {
 
 
 
-/* Function to sort by rating */
+/* 8.  Function to sort by rating */
 //Can I make this function shorter and less repetitive?//
 export async function sortByRating(forename, surname) {
   if (!forename || !surname) {
@@ -187,7 +207,7 @@ export async function sortByRating(forename, surname) {
     return result.rows;
 
   } else {
-    // User selected – return only that user's books
+    // 9.  User selected – return only that user's books
     const user = await getUser({ forename, surname });
 
     if (!user) {
@@ -214,7 +234,7 @@ export async function sortByRating(forename, surname) {
 
 
 
-/* Function to edit a book item */
+/* 10.  Function to edit a book item */
 export async function editBook({ bookId, title, author, yearRead, rating, guidanceNotes, forename, surname}) {
     const user = await getUser({ forename, surname });
 
@@ -236,7 +256,7 @@ export async function editBook({ bookId, title, author, yearRead, rating, guidan
 }
 
 
-/* Function to delete a book item */
+/* 11.  Function to delete a book item */
 // Function to delete an item by id
 export async function deleteItem(book_id, forename, surname) {
   const user = await getUser({ forename, surname });

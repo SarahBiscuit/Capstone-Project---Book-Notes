@@ -151,9 +151,11 @@ export async function sortByYearRead(forename, surname) {
   if (!forename || !surname) {
     // No user selected – return all books sorted by year read
     const query = `
-      SELECT b.book_id, b.title, b.author, b.year_read, b.rating, b.guidance_notes
+      SELECT b.book_id, ta.title, ta.author, b.year_I_read_it, b.my_rating, b.guidance_notes
       FROM books b
-      ORDER BY b.year_read DESC, b.author ASC, b.title ASC;
+      JOIN users u ON b.user_id = u.id
+      JOIN titlesAuthors ta ON b.book_id = ta.id
+      ORDER BY b.year_I_read_it DESC, ta.author ASC, ta.title ASC;
     `;
     const result = await db.query(query);
 
@@ -171,12 +173,15 @@ export async function sortByYearRead(forename, surname) {
       throw new Error('User not found');
     }
 
-    const userId = user.user_id;
+    const userId = user.id;  // fixed here
+
     const query = `
-      SELECT b.book_id, b.title, b.author, b.year_read, b.rating, b.guidance_notes
+      SELECT b.book_id, ta.title, ta.author, b.year_I_read_it, b.my_rating, b.guidance_notes
       FROM books b
+      JOIN users u ON b.user_id = u.id
+      JOIN titlesAuthors ta ON b.book_id = ta.id
       WHERE b.user_id = $1
-      ORDER BY b.year_read DESC, b.author ASC, b.title ASC;
+      ORDER BY b.year_I_read_it DESC, ta.author ASC, ta.title ASC;
     `;
 
     const result = await db.query(query, [userId]);
@@ -192,14 +197,15 @@ export async function sortByYearRead(forename, surname) {
 
 
 /* 8.  Function to sort by rating */
-//Can I make this function shorter and less repetitive?//
 export async function sortByRating(forename, surname) {
   if (!forename || !surname) {
     // No user selected – return all books sorted by rating
     const query = `
-      SELECT b.book_id, b.title, b.author, b.year_read, b.rating, b.guidance_notes
+      SELECT b.book_id, ta.title, ta.author, b.year_I_read_it, b.my_rating, b.guidance_notes
       FROM books b
-      ORDER BY b.rating ASC, b.author ASC, b.title ASC;
+      JOIN users u ON b.user_id = u.id
+      JOIN titlesAuthors ta ON b.book_id = ta.id
+      ORDER BY b.my_rating DESC, ta.author ASC, ta.title ASC;
     `;
     const result = await db.query(query);
 
@@ -210,19 +216,22 @@ export async function sortByRating(forename, surname) {
     return result.rows;
 
   } else {
-    // 9.  User selected – return only that user's books
+    // User selected – return only that user's books
     const user = await getUser({ forename, surname });
 
     if (!user) {
       throw new Error('User not found');
     }
 
-    const userId = user.user_id;
+    const userId = user.id;  // fixed here
+
     const query = `
-      SELECT b.book_id, b.title, b.author, b.year_read, b.rating, b.guidance_notes
+      SELECT b.book_id, ta.title, ta.author, b.year_I_read_it, b.my_rating, b.guidance_notes
       FROM books b
+      JOIN users u ON b.user_id = u.id
+      JOIN titlesAuthors ta ON b.book_id = ta.id
       WHERE b.user_id = $1
-      ORDER BY b.rating ASC, b.author ASC, b.title ASC;
+      ORDER BY b.my_rating DESC, ta.author ASC, ta.title ASC;
     `;
 
     const result = await db.query(query, [userId]);

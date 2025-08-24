@@ -117,13 +117,13 @@ export async function getBooksByUser({ forename, surname }) {
 /* 5.  Function to get all users */
 export async function getAllUsers() {
   const query = `
-  SELECT user_id, forename, surname
-  FROM users
-  ORDER BY surname ASC, forename ASC
+    SELECT id, first_name, surname
+    FROM users
+    ORDER BY surname ASC, first_name ASC
   `;
-  const result = await db.query(query, [forename, surname]);
+  const result = await db.query(query);  // no parameters needed
   if (result.rowCount === 0) {
-    throw new Error('No users found]');
+    throw new Error('No users found');
   }
   return result.rows;
 }
@@ -133,11 +133,11 @@ export async function getAllUsers() {
 /* 6.  Function to get a specific user */
 export async function getUser({ forename, surname }) {
   const query = `
-  SELECT user_id, forename, surname
+  SELECT id, first_name, surname
   FROM users 
-  WHERE forename ILIKE $1 AND surname ILIKE $2
-  ORDER BY surname ASC, forename ASC
-  `;
+  WHERE first_name ILIKE $1 AND surname ILIKE $2
+  ORDER BY surname ASC, first_name ASC
+  LIMIT 1`;
   const result = await db.query(query, [forename, surname]);
   if (result.rowCount === 0) {
     throw new Error('No user found with the provided forename and surname');

@@ -247,70 +247,96 @@ export async function sortByRating(forename, surname) {
 
 
 /* 9.  Function to edit a book item */
-export async function editBook({ bookId, title, author, yearRead, rating, guidanceNotes, forename, surname}) {
-    const user = await getUser({ forename, surname });
+export async function editBook({
+  bookId, // ID from 'books' table
+  title,
+  author,
+  yearRead,
+  rating,
+  guidanceNotes,
+  forename,
+  surname
+}) {
+  const user = await getUser({ forename, surname });
+  if (!user) {
+    throw new Error('User not found');
+  }
 
-    if (!user) {
-      throw new Error('User not found');
-    }
+  const client = await db.connect();
 
-    const client = await db.connect();
   try {
     await client.query('BEGIN');
 
-    //If one field is not provided do not update it
+    let newTitlesAuthorsId;
 
-    /*When a user edits a book entry and changes the author or title:
+    // If both title and author are provided, we're updating the book reference
+    if (title && author) {
+      // Check if that title/author already exists
+      const checkQuery = `
+        SELECT id FROM titlesAuthors WHERE title ILIKE $1 AND author ILIKE $2
+      `;
+      const result = await client.query(checkQuery, [title, author]);
 
-Check if the new author/title combo already exists in titlesAuthors*/
-if (title && author) {
-  const checkQuery = 'SELECT id FROM titlesAuthors WHERE title ILIKE $1 AND author ILIKE $2';
-  const existing = await db.query(checkQuery, [title, author]);
+      if (result.rowCount > 0) {
+        // Reuse the existing title-author ID
+        newTitlesAuthorsId = result.rows[0].id;
+      } else {
+        // Insert a new title-author pair
+        const insertQuery = `
+          INSERT INTO titlesAuthors (title, author)
+          VALUES ($1, $2)
+          RETURNING id
+        `;
+        const insertResult = await client.query(insertQuery, [title, author]);
+        newTitlesAuthorsId = insertResult.rows[0].id;
+      }
 
-  if (existing.rowCount > 0) {
-    throw new Error('This title and author combination already exists');
-    //Get bookId and use as the bookId to update the books table
-    const existingBookId = existing.rows[0].id;
-    const updateBookQuery = `
-    UPDATE books SET book_id = $1, 
-    year_I_read_it = COALESCE($2, year_I_read_it),
-    my_rating = COALESCE($3, my_rating),
-    guidance_notes = COALESCE($4, guidance_notes);
-    WHERE book_id = $5 and user_id = $6';
-    await db.query(updateBookQuery, [existingBookId, yearRead, rating, guidanceNotes, bookId, user.id]);`
-  } else {
+      /* Update the books table to reference the new title-author*/
+      const updateBooksQuery = `
+        UPDATE books
+        SET
+          book_id = $1,
+          year_I_read_it = COALESCE($2, year_I_read_it),
+          my_rating = COALESCE($3, my_rating),
+          guidance_notes = COALESCE($4, guidance_notes)
+        WHERE book_id = $5 AND user_id = $6
+      `;
+      await client.query(updateBooksQuery, [
+        newTitlesAuthorsId,
+        yearRead,
+        rating,
+        guidanceNotes,
+        bookId,
+        user.id
+      ]);
 
-//if not, update titlesAuthors and books tables as normal
-const updateTitlesAuthorsQuery = `
-UPDATE titlesAuthors
-SET 
-title = COALESCE($1, title),
-author = COALESCE($2, author),
-WHERE id = $3`;
+      // Ensure entry exists in userReads
+      const insertUserReadsQuery = `
+        INSERT INTO userReads (user_id, book_id)
+        VALUES ($1, $2)
+        ON CONFLICT (user_id, book_id) DO NOTHING
+      `;
+      await client.query(insertUserReadsQuery, [user.id, newTitlesAuthorsId]);
+    } else {
+      // If no title/author change, just update other fields
+      const updateOnlyBookDetailsQuery = `
+        UPDATE books
+        SET
+          year_I_read_it = COALESCE($1, year_I_read_it),
+          my_rating = COALESCE($2, my_rating),
+          guidance_notes = COALESCE($3, guidance_notes)
+        WHERE book_id = $4 AND user_id = $5
+      `;
+      await client.query(updateOnlyBookDetailsQuery, [
+        yearRead,
+        rating,
+        guidanceNotes,
+        bookId,
+        user.id
+      ]);
+    }
 
-await db.query(updateTitlesAuthorsQuery, [title, author, bookId]);
-
-const updateBooksQuery = `
-UPDATE books
-SET
-year_I_read_it = COALESCE($1, year_I_read_it),
-my_rating = COALESCE($2, my_rating),
-guidance_notes = COALESCE($3, guidance_notes)`
-WHERE book_id = $4 AND user_id = $5`;
-
-await db.query(updateBooksQuery, [yearRead, rating, guidanceNotes, bookId, user.id]);
-}
-
-//Push any new book id and user id match to userReads if not already there
-const findOrInsertUserReadsQuery
-= `
-INSERT INTO userReads (user_id, book_id)
-VALUES ($1, $2)
-ON CONFLICT (user_id, book_id) DO NOTHING;
-await db.query(findOrInsertUserReadsQuery, [user.id, bookId]);
-  }`
-
-   await client.query('COMMIT');
+    await client.query('COMMIT');
   } catch (error) {
     await client.query('ROLLBACK');
     throw error;

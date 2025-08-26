@@ -246,7 +246,7 @@ export async function sortByRating(forename, surname) {
 
 
 
-/* 10.  Function to edit a book item */
+/* 9.  Function to edit a book item */
 export async function editBook({ bookId, title, author, yearRead, rating, guidanceNotes, forename, surname}) {
     const user = await getUser({ forename, surname });
 
@@ -254,21 +254,73 @@ export async function editBook({ bookId, title, author, yearRead, rating, guidan
       throw new Error('User not found');
     }
 
-    //If one field is not provide do not update it
-    const query = `
-    UPDATE books
-      SET title = COALESCE($1, title),
-      author = COALESCE($2, author),
-      year_read = COALESCE($3, year_read),
-      rating = COALESCE($4, rating),
-      guidance_notes = COALESCE($5, guidance_notes),
-      WHERE book_id = $6 AND user_id = $7
-    `;
-    const values = [title, author, yearRead, rating, guidanceNotes, bookId, user.user_id];
+    const client = await db.connect();
+  try {
+    await client.query('BEGIN');
+
+    //If one field is not provided do not update it
+
+    /*When a user edits a book entry and changes the author or title:
+
+Check if the new author/title combo already exists in titlesAuthors*/
+if (title && author) {
+  const checkQuery = 'SELECT id FROM titlesAuthors WHERE title ILIKE $1 AND author ILIKE $2';
+  const existing = await db.query(checkQuery, [title, author]);
+
+  if (existing.rowCount > 0) {
+    throw new Error('This title and author combination already exists');
+    //Get bookId and use as the bookId to update the books table
+    const existingBookId = existing.rows[0].id;
+    const updateBookQuery = `
+    UPDATE books SET book_id = $1, 
+    year_I_read_it = COALESCE($2, year_I_read_it),
+    my_rating = COALESCE($3, my_rating),
+    guidance_notes = COALESCE($4, guidance_notes);
+    WHERE book_id = $5 and user_id = $6';
+    await db.query(updateBookQuery, [existingBookId, yearRead, rating, guidanceNotes, bookId, user.id]);`
+  } else {
+
+//if not, update titlesAuthors and books tables as normal
+const updateTitlesAuthorsQuery = `
+UPDATE titlesAuthors
+SET 
+title = COALESCE($1, title),
+author = COALESCE($2, author),
+WHERE id = $3`;
+
+await db.query(updateTitlesAuthorsQuery, [title, author, bookId]);
+
+const updateBooksQuery = `
+UPDATE books
+SET
+year_I_read_it = COALESCE($1, year_I_read_it),
+my_rating = COALESCE($2, my_rating),
+guidance_notes = COALESCE($3, guidance_notes)`
+WHERE book_id = $4 AND user_id = $5`;
+
+await db.query(updateBooksQuery, [yearRead, rating, guidanceNotes, bookId, user.id]);
+}
+
+//Push any new book id and user id match to userReads if not already there
+const findOrInsertUserReadsQuery
+= `
+INSERT INTO userReads (user_id, book_id)
+VALUES ($1, $2)
+ON CONFLICT (user_id, book_id) DO NOTHING;
+await db.query(findOrInsertUserReadsQuery, [user.id, bookId]);
+  }`
+
+   await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 
-/* 11.  Function to delete a book item */
+/* 10.  Function to delete a book item */
 // Function to delete an item by id
 export async function deleteItem(book_id, forename, surname) {
   const user = await getUser({ forename, surname });

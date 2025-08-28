@@ -1,4 +1,4 @@
-import db from '../db.js';
+import db from './db.js';
 
 /* 1.  Function to add a new book item */
 export async function addNewBook({ title, author, yearRead, rating, guidanceNotes, forename, surname }) {

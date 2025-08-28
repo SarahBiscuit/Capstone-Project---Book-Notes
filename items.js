@@ -351,11 +351,10 @@ export async function editBook({
 export async function deleteItem(book_id, forename, surname) {
   const user = await getUser({ forename, surname });
   //Get user id for the above
-  const result = user.rows[0];
-  if (!result) {
+  if (!user) {
    throw new Error('User not found');
   }
-  const userId = result.user_id;
+  const userId = user.id;
   const query = `DELETE FROM books WHERE book_id = $1 AND user_id = $2`;
   await db.query(query, [book_id, userId]);
 }

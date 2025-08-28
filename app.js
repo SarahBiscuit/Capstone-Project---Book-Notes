@@ -33,7 +33,6 @@ app.get('/searchUser', async (req, res) => {
         console.error('Error fetching books:', error.stack);
         res.status(500).send('Internal Server Error');
     }
-    }
 })
 
 app.post('/addBook', async (req, res) => {
@@ -61,13 +60,12 @@ app.post ('/addUser', async (req, res) => {
         console.error('Error adding user:', error.stack);
         res.status(500).send('Internal Server Error');
     }
-    }
 })
 
 app.get('/addUser', async (req, res) => {
     /* Renders the new user form page */
     try {
-        res.render('/addNewUser');
+        res.render('addNewUser');
     } catch (error) {
         console.error('Error rendering add user page:', error.stack);
         res.status(500).send('Internal Server Error');
@@ -89,14 +87,14 @@ app.get('/Home', async (req, res) => {
 app.get('/addBook', async (req, res) => {
     /* Renders the new book form page */
     try { 
-        res.render('/addNewBook');
+        res.render('addNewBook');
     } catch (error) {
         console.error('Error rendering add book page:', error.stack);
         res.status(500).send('Internal Server Error');
     }
 })
 
-app.get('/searchUser', async (req, res) => {
+app.get('/searchForUser', async (req, res) => {
     //Handles the search for a user in the header.ejs file
     try { 
         const { forename, surname } = req.query;
@@ -113,7 +111,7 @@ app.get('/searchUser', async (req, res) => {
         res.status(500).send('Internal Server Error');
 })
 
-app.post('/sortByYear', async (req, res) => {
+app.get('/sortByYear', async (req, res) => {
     /* Sorts books by year read */
     try {
         const {forename, surname} = req.body;
@@ -125,7 +123,7 @@ app.post('/sortByYear', async (req, res) => {
     }
 })
 
-app.post('/sortByRating', async (req, res) => {
+app.get('/sortByRating', async (req, res) => {
     /* Sorts books by rating */
     try {
         const {forename, surname} = req.body;

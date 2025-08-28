@@ -49,11 +49,11 @@
           
         <%-- Edit Form in Bootstrap modal --%>
       <%-- Edit Button --%>
-<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editModal">
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editModal_<%= book.book_id %>">
   Edit 
 </button>
 <%-- Modal --%>
-<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+<div class="modal fade" id="editModal_<%= book.book_id %>" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <form method="POST" action="/edit">
@@ -87,17 +87,17 @@
 
           <div class="mb-3">
             <label for="guidance_notes" class="form-label">Your Book Review</label>
-            <textarea name="guidance_notes" id="guidance_notes" class="form-control"><%= book.guidance_notes || '' %></textarea>
+            <input type="text" name="guidance_notes" id="guidance_notes" class="form-control" value="<%= book.guidance_notes %>" />
           </div>
 
           <div class="mb-3">
             <label for="forename" class="form-label">User Forename</label>
-            <textarea name="forename" id="forename" class="form-control"><%= book.forename || '' required%></textarea>
+            <input type="text" name="forename" id="forename" class="form-control" value="<%= forename %>" />
           </div>
 
           <div class="mb-3">
             <label for="surname" class="form-label">User Forename</label>
-            <textarea name="surname" id="surname" class="form-control"><%= book.surname || '' required%></textarea>
+            <input type="text" name="surname" id="surname" class="form-control" value="<%= surname %>" />
           </div>
 
         </div>

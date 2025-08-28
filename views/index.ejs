@@ -99,7 +99,7 @@
 
           <div class="mb-3">
             <label for="guidance_notes" class="form-label">Your Book Review</label>
-            <input type="text" name="guidance_notes" id="guidance_notes" class="form-control" value="<%= book.guidance_notes %>" />
+            <textarea type="text" name="guidance_notes" id="guidance_notes" class="form-control"><%= book.guidance_notes || '' %></textarea>
           </div>
 
           <div class="mb-3">

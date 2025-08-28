@@ -111,7 +111,6 @@ app.get('/searchUser', async (req, res) => {
     } catch (error) {
         console.error('Error fetching books by user:', error.stack);
         res.status(500).send('Internal Server Error');
-    }
 })
 
 app.post('/sortByYear', async (req, res) => {

@@ -1,11 +1,11 @@
 <%- include("partials/header.ejs") %>
 
 <div class="container headerBoxes">
-<%-- Main header --%>
+<% /* Main header */ %>
     <div class="container bookNotesHeader">
         <h1><span><b>Books We Recommend</b></span></h1>
     </div>
-<%--> Sub Header --%>
+<% /* Sub Header */ %>
     <div class="container bookNotesSubHeader">
         <h3>
             <p><span><b>Select a user using the 'select user' search box above, and explore their favourite reads.</b></span></p>
@@ -16,14 +16,14 @@
 </div>
 
 <div class="headerBoxes">
-<%-- Header bar with user name in --%>
+<% /* Header bar with user name in */ %>
     <div class="container userheader">
         <h2>
             <span><b><%= userName ? `User Name - ${forename} ${surname}`: `Select a user to view their book recommendations` %></b></span>
         </h2>
     </div>
 
-<%-- Sub Header --%>
+<% /* Sub Header */ %>
     <div class="container bookNotesSubHeader">
         <h3>
             <span><b>Please see my book recommendations below</b></span>
@@ -31,19 +31,19 @@
     </div>
 </div>
 
-<%-- Sort By Rating --%>
+<% /* Sort By Rating */ %>
            <form action="/sortByRating" method="GET" style="display:inline;">
             <input type="hidden" name="userId" value="<%= userId %>">
             <button type="submit" class="btn btn-primary">Sort By Rating</button>
            </form>
 
-           <%-- Sort By Year Read --%>
+<% /* Sort By Year Read */ %>
            <form action="/sortByYear" method="GET" style="display:inline;">
             <input type="hidden" name="userId" value="<%= userId %>">
             <button type="submit" class="btn btn-primary">Sort By Year the User Read it in</button>
            </form>
 
-<%-- For each function to generate bootstrap cards for each book.  Want to rewrite it as jquery.  --%>
+<% /* For each function to generate bootstrap cards for each book.  Want to rewrite it as jquery. */ %>
 <div class="container mt-4">
   <div class="row">
     
@@ -59,12 +59,12 @@
           <p class="card-text"><%= book.yearRead || '' %></p>
           <p class="card-text"><%= book.guidanceNotes || '' %></p>
           
-        <%-- Edit Form in Bootstrap modal --%>
-      <%-- Edit Button --%>
+<% /* Edit Form in Bootstrap modal */ %>
+      <% /* Edit Button */ %>
 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editModal_<%= book.book_id %>">
   Edit 
 </button>
-<%-- Modal --%>
+<% /* Modal */ %>
 <div class="modal fade" id="editModal_<%= book.book_id %>" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
@@ -123,7 +123,7 @@
 </div>
         
 
-          <%-- Delete Form --%>
+<% /* Delete Form */ %>
           <form action="/books/<%= book.book_id %>?_method=DELETE" method="POST" style="display:inline;">
             <input type="hidden" name="user_id" value="<%= book.user_id %>" />
             <input type="hidden" name="forename" placeholder="user forename" value="<%= forename %>"> 

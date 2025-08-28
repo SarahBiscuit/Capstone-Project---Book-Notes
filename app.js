@@ -3,7 +3,7 @@
 import express from "express";
 import bodyParser from "body-parser";
 
-import { addNewBook, addNewUser, getAllBooks, getBooksByUser, getAllUsers, getUser, sortByYearRead, sortByRating, editBook, deleteItem } from './api/items.js';
+import { addNewBook, addNewUser, getAllBooks, getBooksByUser, getAllUsers, getUser, sortByYearRead, sortByRating, editBook, deleteItem, getUserById } from './api/items.js';
 
 const app = express();
 

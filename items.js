@@ -147,9 +147,9 @@ export async function getUser({ forename, surname }) {
 
 
 /* 7.  Function to sort all books by year read */
-export async function sortByYearRead(forename, surname) {
+  export async function sortByYearRead({ forename, surname }) {
+    //no user found - return all books sorted by year read
   if (!forename || !surname) {
-    // No user selected – return all books sorted by year read
     const query = `
       SELECT b.book_id, ta.title, ta.author, b.year_I_read_it, b.my_rating, b.guidance_notes
       FROM books b
@@ -164,48 +164,46 @@ export async function sortByYearRead(forename, surname) {
     }
 
     return result.rows;
-
-  } else {
-    // User selected – return only that user's books
-    const user = await getUser({ forename, surname });
-
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    const userId = user.id;  // fixed here
-
-    const query = `
-      SELECT b.book_id, ta.title, ta.author, b.year_I_read_it, b.my_rating, b.guidance_notes
-      FROM books b
-      JOIN users u ON b.user_id = u.id
-      JOIN titlesAuthors ta ON b.book_id = ta.id
-      WHERE b.user_id = $1
-      ORDER BY b.year_I_read_it DESC, ta.author ASC, ta.title ASC;
-    `;
-
-    const result = await db.query(query, [userId]);
-
-    if (result.rowCount === 0) {
-      throw new Error('No books found for this user');
-    }
-
-    return result.rows;
   }
+
+//if user found - return only that user's books
+
+  const user = await getUser({ forename, surname });
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  const query = `
+    SELECT b.book_id, ta.title, ta.author, b.year_I_read_it, b.my_rating, b.guidance_notes
+    FROM books b
+    JOIN users u ON b.user_id = u.id
+    JOIN titlesAuthors ta ON b.book_id = ta.id
+    WHERE b.user_id = $1
+    ORDER BY b.year_I_read_it DESC, ta.author ASC, ta.title ASC;
+  `;
+
+  const result = await db.query(query, [user.id]);
+
+  if (result.rowCount === 0) {
+    throw new Error('No books found for this user');
+  }
+
+  return result.rows;
 }
 
 
 
 /* 8.  Function to sort by rating */
 export async function sortByRating(forename, surname) {
+    //no user found - return all books sorted by rating
   if (!forename || !surname) {
-    // No user selected – return all books sorted by rating
     const query = `
       SELECT b.book_id, ta.title, ta.author, b.year_I_read_it, b.my_rating, b.guidance_notes
       FROM books b
       JOIN users u ON b.user_id = u.id
       JOIN titlesAuthors ta ON b.book_id = ta.id
-      ORDER BY b.my_rating DESC, ta.author ASC, ta.title ASC;
+      ORDER BY b.rating DESC, ta.author ASC, ta.title ASC;
     `;
     const result = await db.query(query);
 
@@ -214,34 +212,32 @@ export async function sortByRating(forename, surname) {
     }
 
     return result.rows;
-
-  } else {
-    // User selected – return only that user's books
-    const user = await getUser({ forename, surname });
-
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    const userId = user.id;  // fixed here
-
-    const query = `
-      SELECT b.book_id, ta.title, ta.author, b.year_I_read_it, b.my_rating, b.guidance_notes
-      FROM books b
-      JOIN users u ON b.user_id = u.id
-      JOIN titlesAuthors ta ON b.book_id = ta.id
-      WHERE b.user_id = $1
-      ORDER BY b.my_rating DESC, ta.author ASC, ta.title ASC;
-    `;
-
-    const result = await db.query(query, [userId]);
-
-    if (result.rowCount === 0) {
-      throw new Error('No books found for this user');
-    }
-
-    return result.rows;
   }
+  
+//if user found - return only that user's books
+
+  const user = await getUser({ forename, surname });
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  const query = `
+    SELECT b.book_id, ta.title, ta.author, b.year_I_read_it, b.my_rating, b.guidance_notes
+    FROM books b
+    JOIN users u ON b.user_id = u.id
+    JOIN titlesAuthors ta ON b.book_id = ta.id
+    WHERE b.user_id = $1
+    ORDER BY b.rating DESC, ta.author ASC, ta.title ASC;
+  `;
+
+  const result = await db.query(query, [user.id]);
+
+  if (result.rowCount === 0) {
+    throw new Error('No books found for this user');
+  }
+
+  return result.rows;
 }
 
 

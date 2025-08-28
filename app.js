@@ -3,7 +3,7 @@
 import express from "express";
 import bodyParser from "body-parser";
 
-import { addNewBook, addNewUser, getAllBooks, getBooksByUser, getAllUsers, getUser, sortByYearRead, sortByRating, editBook, deleteItem, getUserById } from './api/items.js';
+import { addNewBook, addNewUser, getAllBooks, getBooksByUser, getAllUsers, getUser, sortByYearRead, sortByRating, editBook, deleteItem, getUserById } from './items.js';
 
 const app = express();
 
@@ -109,12 +109,15 @@ app.get('/searchForUser', async (req, res) => {
     } catch (error) {
         console.error('Error fetching books by user:', error.stack);
         res.status(500).send('Internal Server Error');
+    }
 })
+
+
 
 app.get('/sortByYear', async (req, res) => {
     /* Sorts books by year read */
     try {
-        const {forename, surname} = req.body;
+        const {forename, surname} = req.query;
         const books = await sortByYearRead({ forename, surname });
         res.render('index', { books, forename, surname });
     } catch (error) {
@@ -126,7 +129,7 @@ app.get('/sortByYear', async (req, res) => {
 app.get('/sortByRating', async (req, res) => {
     /* Sorts books by rating */
     try {
-        const {forename, surname} = req.body;
+        const {forename, surname} = req.query;
         const books = await sortByRating({ forename, surname });
         res.render('index', { books, forename, surname });
     } catch (error) {

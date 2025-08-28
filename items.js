@@ -357,6 +357,6 @@ export async function deleteItem(book_id, forename, surname) {
 
 //11. Function to get user by id
 export async function getUserById(user_id) {
-  const result = await db.query('SELECT forename, surname FROM users WHERE id = $1', [user_id]);
+  const result = await db.query('SELECT first_name, surname FROM users WHERE id = $1', [user_id]);
   return result.rows[0];
 }

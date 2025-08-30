@@ -30,28 +30,33 @@ app.get('/', async (req, res) => {
 });  
 
 app.get('/searchUser', async (req, res) => {
-    /* Gets a specific user's book items using the form in the header.ejs file */
-    try {
-
-         const { first_name, surname } = req.query;
-         const user = await getUser({ first_name, surname });
+  try {
+    const { first_name, surname } = req.query;
+    const user = await getUser({ first_name, surname });
     if (!user) {
       return res.status(404).send('User not found');
     }
 
-        const books = await getBooksByUser({ first_name, surname});
-        res.render("index", {
-            first_name: user.first_name,
-            surname: user.surname,
-            userId: user.id,
-            books: books || [],
-            activePage: "home"
-        });
-    } catch (error) {
-        console.error('Error fetching books:', error.stack);
-        res.status(500).send('Internal Server Error');
+    let books = [];
+    try {
+      books = await getBooksByUser({ first_name, surname });
+    } catch (err) {
+      console.warn('No books found for user:', err.message);
+      books = [];
     }
-})
+
+    res.render("index", {
+      first_name: user.first_name,
+      surname: user.surname,
+      userId: user.id,
+      books,
+      activePage: "home"
+    });
+  } catch (error) {
+    console.error('Error fetching books:', error.stack);
+    res.status(500).send('Internal Server Error');
+  }
+});
 
 app.post('/addBook', async (req, res) => {
   /* Handles form submission for adding a book */
@@ -72,12 +77,11 @@ app.post('/addUser', async (req, res) => {
     const { first_name, surname } = req.body;
     await addNewUser({ first_name, surname });
 
-    // Try to get books for this user
     let books = [];
     try {
       books = await getBooksByUser({ first_name, surname });
-    } catch {
-      // If error, set books to empty array (e.g., user has no books yet)
+    } catch (err) {
+      console.warn('No books found or error fetching books:', err.message);
       books = [];
     }
 
@@ -122,22 +126,41 @@ app.get('/addBook', async (req, res) => {
 })
 
 app.get('/searchForUser', async (req, res) => {
-    //Handles the search for a user in the header.ejs file
-    try { 
-        const { first_name, surname } = req.query;
+  try {
+    const { first_name, surname } = req.query;
 
-        if (!first_name || !surname) {
+    if (!first_name || !surname) {
       return res.status(400).send('Please provide both first_name and surname');
     }
 
-    //Fetch books for the specified user
-        const books = await getBooksByUser({ first_name, surname });
-        res.render('index', { books, first_name, surname, userId: user.id, activePage: 'home' });
-    } catch (error) {
-        console.error('Error fetching books by user:', error.stack);
-        res.status(500).send('Internal Server Error');
+    // Fetch user first
+    const user = await getUser({ first_name, surname });
+    if (!user) {
+      return res.status(404).send('User not found');
     }
-})
+
+    // Fetch books for the specified user
+    let books = [];
+    try {
+      books = await getBooksByUser({ first_name, surname });
+    } catch {
+      // No books found, continue with empty array
+      books = [];
+    }
+
+    res.render('index', {
+      books,
+      first_name: user.first_name,
+      surname: user.surname,
+      userId: user.id,
+      activePage: 'home'
+    });
+  } catch (error) {
+    console.error('Error fetching books by user:', error.stack);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
 
 app.get('/sortByYear', async (req, res) => {
     /* Sorts books by year read */

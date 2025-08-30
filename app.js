@@ -16,7 +16,13 @@ app.get('/', async (req, res) => {
     try {
         //Get all books (no default user selected)//
         const books = await getAllBooks();
-        res.render("index", { books, activePage: "home" });
+        res.render("index", { 
+            first_name: '',  // no user yet
+            surname: '',
+            userId: null,
+            books: books || [], 
+            activePage: "home"  
+        });
     } catch (error) {
         console.error('Error fetching books:', error.stack);
         res.status(500).send('Internal Server Error');
@@ -26,9 +32,15 @@ app.get('/', async (req, res) => {
 app.get('/searchUser', async (req, res) => {
     /* Gets a specific user's book items using the form in the header.ejs file */
     try {
-        const { forename, surname } = req.query;
-        const books = await getBooksByUser({ forename, surname});
-        res.render("index", { books, activePage: "home" });
+        const { first_name, surname } = req.query;
+        const books = await getBooksByUser({ first_name, surname});
+        res.render("index", {
+            first_name: user.first_name,
+            surname: user.surname,
+            userId: user.id,
+            books: books || [],
+            activePage: "home"
+        });
     } catch (error) {
         console.error('Error fetching books:', error.stack);
         res.status(500).send('Internal Server Error');
@@ -38,11 +50,11 @@ app.get('/searchUser', async (req, res) => {
 app.post('/addBook', async (req, res) => {
   /* Handles form submission for adding a book */
   try {
-        const { title, author, yearRead, rating, guidanceNotes, forename, surname } = req.body;
-        await addNewBook({ title, author, yearRead, rating, guidanceNotes, forename, surname });
+        const { title, author, yearRead, rating, guidanceNotes, first_name, surname } = req.body;
+        await addNewBook({ title, author, yearRead, rating, guidanceNotes, first_name, surname });
     // Redirect to show that specific user's book list
-        const books = await getBooksByUser({ forename, surname });
-        res.render('index', { books, forename, surname, activePage: 'home' });
+        const books = await getBooksByUser({ first_name, surname });
+        res.render('index', { books, first_name, surname, activePage: 'home' });
   } catch (error) {
         console.error('Error adding book:', error.stack);
         res.status(500).send('Internal Server Error');
@@ -52,10 +64,10 @@ app.post('/addBook', async (req, res) => {
 app.post ('/addUser', async (req, res) => {
     /* Handles form submission for adding a user */
     try {
-        const { forename, surname } = req.body;
-        await addNewUser({ forename, surname });
-        const books = await getBooksByUser({ forename, surname });
-        res.render('index', {books, forename, surname, activePage: 'home' });
+        const { first_name, surname } = req.body;
+        await addNewUser({ first_name, surname });
+        const books = await getBooksByUser({ first_name, surname });
+        res.render('index', {books, first_name, surname, activePage: 'home' });
     } catch (error) {
         console.error('Error adding user:', error.stack);
         res.status(500).send('Internal Server Error');
@@ -97,29 +109,27 @@ app.get('/addBook', async (req, res) => {
 app.get('/searchForUser', async (req, res) => {
     //Handles the search for a user in the header.ejs file
     try { 
-        const { forename, surname } = req.query;
+        const { first_name, surname } = req.query;
 
-        if (!forename || !surname) {
-      return res.status(400).send('Please provide both forename and surname');
+        if (!first_name || !surname) {
+      return res.status(400).send('Please provide both first_name and surname');
     }
 
     //Fetch books for the specified user
-        const books = await getBooksByUser({ forename, surname });
-        res.render('index', { books, forename, surname, activePage: 'home' });
+        const books = await getBooksByUser({ first_name, surname });
+        res.render('index', { books, first_name, surname, activePage: 'home' });
     } catch (error) {
         console.error('Error fetching books by user:', error.stack);
         res.status(500).send('Internal Server Error');
     }
 })
 
-
-
 app.get('/sortByYear', async (req, res) => {
     /* Sorts books by year read */
     try {
-        const {forename, surname} = req.query;
-        const books = await sortByYearRead({ forename, surname });
-        res.render('index', { books, forename, surname, activePage: 'home' });
+        const {first_name, surname} = req.query;
+        const books = await sortByYearRead({ first_name, surname });
+        res.render('index', { books, first_name, surname, activePage: 'home' });
     } catch (error) {
         console.error('Error sorting books by year:', error.stack);
         res.status(500).send('Internal Server Error');
@@ -129,9 +139,9 @@ app.get('/sortByYear', async (req, res) => {
 app.get('/sortByRating', async (req, res) => {
     /* Sorts books by rating */
     try {
-        const {forename, surname} = req.query;
-        const books = await sortByRating({ forename, surname });
-        res.render('index', { books, forename, surname, activePage: 'home' });
+        const {first_name, surname} = req.query;
+        const books = await sortByRating({ first_name, surname });
+        res.render('index', { books, first_name, surname, activePage: 'home' });
     } catch (error) {
         console.error('Error sorting books by rating:', error.stack);
         res.status(500).send('Internal Server Error');
@@ -141,10 +151,10 @@ app.get('/sortByRating', async (req, res) => {
 app.post('/edit', async (req, res) => {
     /* Allows user to edit book details */
     try {
-        const { book_id, title, author, yearRead, rating, guidanceNotes, forename, surname } = req.body;
-        await editBook({ book_id, title, author, yearRead, rating, guidanceNotes, forename, surname });
-        const books = await getBooksByUser({ forename, surname });
-        res.render('index', { books, forename, surname, activePage: 'home' });
+        const { book_id, title, author, yearRead, rating, guidanceNotes, first_name, surname } = req.body;
+        await editBook({ book_id, title, author, yearRead, rating, guidanceNotes, first_name, surname });
+        const books = await getBooksByUser({ first_name, surname });
+        res.render('index', { books, first_name, surname, activePage: 'home' });
         } catch (error) {
             console.error('Error editing book:', error.stack);
             res.status(500).send('Internal Server Error');
@@ -161,15 +171,15 @@ app.post('/delete', async (req, res) => {
       return res.status(404).send('User not found');
     }
 
-    const { forename, surname } = userResult;
+    const { first_name, surname } = userResult;
 
     // Call deleteItem with correct parameters
-    await deleteItem(book_id, forename, surname);
+    await deleteItem(book_id, first_name, surname);
 
     // Fetch updated books list for the user
-    const books = await getBooksByUser({ forename, surname });
+    const books = await getBooksByUser({ first_name, surname });
 
-    res.render('index', { books, forename, surname, activePage: 'home' });
+    res.render('index', { books, first_name, surname, activePage: 'home' });
 
   } catch (error) {
     console.error('Error deleting book:', error.stack);

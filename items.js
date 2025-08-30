@@ -1,18 +1,18 @@
 import db from './db.js';
 
 /* 1.  Function to add a new book item */
-export async function addNewBook({ title, author, yearRead, rating, guidanceNotes, forename, surname }) {
-  //Look up userId from forename and surname
+export async function addNewBook({ title, author, yearRead, rating, guidanceNotes, first_name, surname }) {
+  // Look up userId from first_name and surname
   const userQuery = 'SELECT id FROM users WHERE first_name ILIKE $1 AND surname ILIKE $2 LIMIT 1';
-  const userResult = await db.query(userQuery, [forename, surname]);
+  const userResult = await db.query(userQuery, [first_name, surname]);
 
   if (userResult.rowCount === 0) {
-    throw new Error('User not found with the provided forename and surname');
+    throw new Error('User not found with the provided first_name and surname');
   }
 
   const userId = userResult.rows[0].id;
 
-  //Check if user and book id are already in the userReads table
+  // Check if user and book id are already in the userReads table
   const userBookMatchExistsQuery = `
     SELECT * FROM userReads
     WHERE user_id = $1 
@@ -22,10 +22,10 @@ export async function addNewBook({ title, author, yearRead, rating, guidanceNote
   `;
   const userBookMatch = await db.query(userBookMatchExistsQuery, [userId, title, author]);
   if (userBookMatch.rowCount > 0) {
-    throw new Error(`This book is already associated with the user ${forename} ${surname}`);
+    throw new Error(`This book is already associated with the user ${first_name} ${surname}`);
   }
 
-  //Insert or get existing title/author in titlesAuthors
+  // Insert or get existing title/author in titlesAuthors
   const findOrInsertTitleAuthorQuery = `
     INSERT INTO titlesAuthors (title, author)
     VALUES ($1, $2)
@@ -35,7 +35,7 @@ export async function addNewBook({ title, author, yearRead, rating, guidanceNote
   const titleAuthorResult = await db.query(findOrInsertTitleAuthorQuery, [title, author]);
   const titleAuthorId = titleAuthorResult.rows[0].id;
 
-  //Insert or get userReads entry linking user and book
+  // Insert or get userReads entry linking user and book
   const findOrInsertUserReadsQuery = `
     INSERT INTO userReads (user_id, book_id)
     VALUES ($1, $2)
@@ -45,7 +45,7 @@ export async function addNewBook({ title, author, yearRead, rating, guidanceNote
   const userReadsResult = await db.query(findOrInsertUserReadsQuery, [userId, titleAuthorId]);
   const userReadsId = userReadsResult.rows[0].id;
 
-  //Insert book reading details linked to userReads
+  // Insert book reading details linked to userReads
   const insertBookQuery = `
     INSERT INTO books (user_id, book_id, year_I_read_it, my_rating, guidance_notes)
     VALUES ($1, $2, $3, $4, $5)
@@ -59,25 +59,23 @@ export async function addNewBook({ title, author, yearRead, rating, guidanceNote
 }
 
 
-
 /* 2.  Function to add a new user */
-export async function addNewUser({ forename, surname }) {
+export async function addNewUser({ first_name, surname }) {
 
-  //Check if the user already exists
-const checkQuery = 'SELECT id FROM users WHERE first_name ILIKE $1 AND surname ILIKE $2';
-const alreadyMatch = await db.query(checkQuery, [forename, surname]);
-if (alreadyMatch.rowCount > 0) {
-  throw new Error('User already exists with the provided forename and surname');
-}
+  // Check if the user already exists
+  const checkQuery = 'SELECT id FROM users WHERE first_name ILIKE $1 AND surname ILIKE $2';
+  const alreadyMatch = await db.query(checkQuery, [first_name, surname]);
+  if (alreadyMatch.rowCount > 0) {
+    throw new Error('User already exists with the provided first_name and surname');
+  }
 
- //Insert the new user
- const insertQuery = `
+  // Insert the new user
+  const insertQuery = `
     INSERT INTO users (first_name, surname)
     VALUES ($1, $2)
     RETURNING id`;
-    await db.query(insertQuery, [forename, surname]);
+  await db.query(insertQuery, [first_name, surname]);
 }
-
 
 
 /* 3.  Function to get all book items */
@@ -95,9 +93,8 @@ export async function getAllBooks() {
 }
 
 
-
 /* 4.  Function to get all book items for a specific user */
-export async function getBooksByUser({ forename, surname }) {
+export async function getBooksByUser({ first_name, surname }) {
   const query = `
   SELECT b.book_id, ta.author, ta.title, b.year_I_read_it, b.my_rating, b.guidance_notes, u.surname, u.first_name
   FROM books b
@@ -106,7 +103,7 @@ export async function getBooksByUser({ forename, surname }) {
   WHERE u.first_name ILIKE $1 AND u.surname ILIKE $2
   ORDER BY u.surname ASC, u.first_name ASC,ta.author ASC, ta.title ASC;
   `
-  const result = await db.query(query, [forename, surname]);
+  const result = await db.query(query, [first_name, surname]);
   if (result.rowCount === 0) {
     throw new Error('No books found for the specified user');
   }
@@ -129,27 +126,26 @@ export async function getAllUsers() {
 }
 
 
-
 /* 6.  Function to get a specific user */
-export async function getUser({ forename, surname }) {
+export async function getUser({ first_name, surname }) {
   const query = `
   SELECT id, first_name, surname
   FROM users 
   WHERE first_name ILIKE $1 AND surname ILIKE $2
   ORDER BY surname ASC, first_name ASC
   LIMIT 1`;
-  const result = await db.query(query, [forename, surname]);
+  const result = await db.query(query, [first_name, surname]);
   if (result.rowCount === 0) {
-    throw new Error('No user found with the provided forename and surname');
+    throw new Error('No user found with the provided first_name and surname');
   }
   return result.rows[0];
 }
 
 
 /* 7.  Function to sort all books by year read */
-  export async function sortByYearRead({ forename, surname }) {
-    //no user found - return all books sorted by year read
-  if (!forename || !surname) {
+export async function sortByYearRead({ first_name, surname }) {
+  // no user found - return all books sorted by year read
+  if (!first_name || !surname) {
     const query = `
       SELECT b.book_id, ta.title, ta.author, b.year_I_read_it, b.my_rating, b.guidance_notes
       FROM books b
@@ -166,9 +162,9 @@ export async function getUser({ forename, surname }) {
     return result.rows;
   }
 
-//if user found - return only that user's books
+  // if user found - return only that user's books
 
-  const user = await getUser({ forename, surname });
+  const user = await getUser({ first_name, surname });
 
   if (!user) {
     throw new Error('User not found');
@@ -193,17 +189,16 @@ export async function getUser({ forename, surname }) {
 }
 
 
-
 /* 8.  Function to sort by rating */
-export async function sortByRating(forename, surname) {
-    //no user found - return all books sorted by rating
-  if (!forename || !surname) {
+export async function sortByRating({ first_name, surname }) {
+  // no user found - return all books sorted by rating
+  if (!first_name || !surname) {
     const query = `
       SELECT b.book_id, ta.title, ta.author, b.year_I_read_it, b.my_rating, b.guidance_notes
       FROM books b
       JOIN users u ON b.user_id = u.id
       JOIN titlesAuthors ta ON b.book_id = ta.id
-      ORDER BY b.rating DESC, ta.author ASC, ta.title ASC;
+      ORDER BY b.my_rating DESC, ta.author ASC, ta.title ASC;
     `;
     const result = await db.query(query);
 
@@ -213,10 +208,10 @@ export async function sortByRating(forename, surname) {
 
     return result.rows;
   }
-  
-//if user found - return only that user's books
 
-  const user = await getUser({ forename, surname });
+  // if user found - return only that user's books
+
+  const user = await getUser({ first_name, surname });
 
   if (!user) {
     throw new Error('User not found');
@@ -228,7 +223,7 @@ export async function sortByRating(forename, surname) {
     JOIN users u ON b.user_id = u.id
     JOIN titlesAuthors ta ON b.book_id = ta.id
     WHERE b.user_id = $1
-    ORDER BY b.rating DESC, ta.author ASC, ta.title ASC;
+    ORDER BY b.my_rating DESC, ta.author ASC, ta.title ASC;
   `;
 
   const result = await db.query(query, [user.id]);
@@ -241,7 +236,6 @@ export async function sortByRating(forename, surname) {
 }
 
 
-
 /* 9.  Function to edit a book item */
 export async function editBook({
   bookId, // ID from 'books' table
@@ -250,10 +244,10 @@ export async function editBook({
   yearRead,
   rating,
   guidanceNotes,
-  forename,
+  first_name,
   surname
 }) {
-  const user = await getUser({ forename, surname });
+  const user = await getUser({ first_name, surname });
   if (!user) {
     throw new Error('User not found');
   }
@@ -344,18 +338,18 @@ export async function editBook({
 
 /* 10.  Function to delete a book item */
 // Function to delete an item by id
-export async function deleteItem(book_id, forename, surname) {
-  const user = await getUser({ forename, surname });
-  //Get user id for the above
+export async function deleteItem(book_id, first_name, surname) {
+  const user = await getUser({ first_name, surname });
+  // Get user id for the above
   if (!user) {
-   throw new Error('User not found');
+    throw new Error('User not found');
   }
   const userId = user.id;
   const query = `DELETE FROM books WHERE book_id = $1 AND user_id = $2`;
   await db.query(query, [book_id, userId]);
 }
 
-//11. Function to get user by id
+// 11. Function to get user by id
 export async function getUserById(user_id) {
   const result = await db.query('SELECT first_name, surname FROM users WHERE id = $1', [user_id]);
   return result.rows[0];

@@ -18,7 +18,6 @@
   </head>
   <body>
   <main>
-    /* Add the navigation bar in here - bootstrap navigation bar */
    <!-- Bootstrap Navigation Bar -->
     <nav class="navbar navbar-expand-lg custom-navbar">
         <a class="navbar-brand text-black" href="/">Book Notes</a>
@@ -42,23 +41,23 @@
 
     <!-- Search form aligned right -->
             <form class="form-inline my-2 my-lg-0" action="/searchForUser" method="GET">
-                <input
-                    class="form-control mr-sm-2"
-                    type="text"
-                    name="forename"
-                    placeholder="Forename"
-                    aria-label="Forename"
-                    required
-                />
-                <input
-                    class="form-control mr-sm-2"
-                    type="text"
-                    name="surname"
-                    placeholder="Surname"
-                    aria-label="Surname"
-                    required
-                />
-                <button class="btn custom-search-btn my-2 my-sm-0" type="submit">Search</button>
-            </form>
+    <input
+        class="form-control mr-sm-2"
+        type="text"
+        name="first_name"
+        placeholder="First Name"
+        aria-label="First Name"
+        required
+    />
+    <input
+        class="form-control mr-sm-2"
+        type="text"
+        name="surname"
+        placeholder="Surname"
+        aria-label="Surname"
+        required
+    />
+    <button class="btn custom-search-btn my-2 my-sm-0" type="submit">Search</button>
+</form>
         </div>
     </nav>

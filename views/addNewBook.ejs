@@ -21,16 +21,21 @@
         <div class="col-md-6 col-sm-12">
             <form action="/addBook" method="POST">
                 <div class="form-group mb-3">
-                    <label for="userForename">User Forename: </label>
-                    <input type="text" class="form-control" id="forename" name="forename" required>
+                    <label for="userFirstName">User First Name: </label>
+                    <input type="text" class="form-control" id="first_name" name="first_name" required>
+                    
                     <label for="userSurname"> User Surname: </label>
                     <input type="text" class="form-control" id="surname" name="surname" required>
-                    <label for="first_name">Author: </label>
+                    
+                    <label for="author">Author: </label>
                     <input type="text" class="form-control" id="author" name="author" required>
-                    <label for="surname">title: </label>
+                    
+                    <label for="title">Title: </label>
                     <input type="text" class="form-control" id="title" name="title" required>
+                    
                     <label for="yearRead">Year You Read It: </label>
                     <input type="number" class="form-control" id="yearRead" name="yearRead" required>
+                    
                     <label for="guidanceNotes">Your review notes on this book: </label>
                     <textarea name="guidance_notes" id="guidance_notes" class="form-control" type="text"></textarea>
                 </div>

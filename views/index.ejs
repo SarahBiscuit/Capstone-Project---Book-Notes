@@ -19,7 +19,7 @@
 <% /* Header bar with user name in */ %>
     <div class="container userheader">
         <h2>
-            <span><b><%= userName ? `User Name - ${forename} ${surname}`: `Select a user to view their book recommendations` %></b></span>
+            <%= (first_name && surname) ? `User Name - ${first_name} ${surname}` : 'Select a user to view their book recommendations' %>
         </h2>
     </div>
 
@@ -103,12 +103,12 @@
           </div>
 
           <div class="mb-3">
-            <label for="forename" class="form-label">User Forename</label>
-            <input type="text" name="forename" id="forename" class="form-control" value="<%= forename %>" />
+            <label for="first_name" class="form-label">User First Name</label>
+            <input type="text" name="first_name" id="first_name" class="form-control" value="<%= first_name %>" />
           </div>
 
           <div class="mb-3">
-            <label for="surname" class="form-label">User Forename</label>
+            <label for="surname" class="form-label">User Surname</label>
             <input type="text" name="surname" id="surname" class="form-control" value="<%= surname %>" />
           </div>
 
@@ -126,7 +126,7 @@
 <% /* Delete Form */ %>
           <form action="/books/<%= book.book_id %>?_method=DELETE" method="POST" style="display:inline;">
             <input type="hidden" name="user_id" value="<%= book.user_id %>" />
-            <input type="hidden" name="forename" placeholder="user forename" value="<%= forename %>"> 
+            <input type="hidden" name="first_name" placeholder="user first name" value="<%= first_name %>"> 
             <input type="hidden" name="surname" placeholder="user surname" value="<%= surname %>">
             <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this book?');">Delete</button>
           </form>

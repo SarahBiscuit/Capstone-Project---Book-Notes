@@ -61,9 +61,11 @@ app.get('/searchUser', async (req, res) => {
 app.post('/addBook', async (req, res) => {
   /* Handles form submission for adding a book */
   try {
+        console.log("Incoming request body:", req.body); 
         const { title, author, yearRead, rating, guidanceNotes, first_name, surname } = req.body;
         await addNewBook({ title, author, yearRead, rating, guidanceNotes, first_name, surname });
     // Redirect to show that specific user's book list
+        const user = await getUser({ first_name, surname }); 
         const books = await getBooksByUser({ first_name, surname });
         res.render('index', { books, first_name, surname, userId: user.id, activePage: 'home' });
   } catch (error) {
@@ -71,6 +73,8 @@ app.post('/addBook', async (req, res) => {
         res.status(500).send('Internal Server Error');
   }
 });
+
+
 
 app.post('/addUser', async (req, res) => {
   try {

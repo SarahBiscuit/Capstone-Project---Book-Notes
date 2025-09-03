@@ -3,9 +3,11 @@ import db from './db.js';
 /* 1.  Function to add a new book item */
 export async function addNewBook({ title, author, yearRead, rating, guidanceNotes, first_name, surname }) {
   // Look up userId from first_name and surname
-  const userQuery = 'SELECT id FROM users WHERE first_name ILIKE $1 AND surname ILIKE $2 LIMIT 1';
+  const userQuery = "SELECT id FROM users WHERE first_name ILIKE $1 AND surname ILIKE $2 LIMIT 1";
+
   const userResult = await db.query(userQuery, [first_name, surname]);
 
+  console.log("userResult", userResult)
   if (userResult.rowCount === 0) {
     throw new Error('User not found with the provided first_name and surname');
   }
@@ -49,11 +51,11 @@ export async function addNewBook({ title, author, yearRead, rating, guidanceNote
   const insertBookQuery = `
     INSERT INTO books (user_id, book_id, year_I_read_it, my_rating, guidance_notes)
     VALUES ($1, $2, $3, $4, $5)
-    RETURNING id;
+    RETURNING book_id;
   `;
 
   const insertBookResult = await db.query(insertBookQuery, [userId, titleAuthorId, yearRead, rating, guidanceNotes]);
-  const bookEntryId = insertBookResult.rows[0].id;
+  const bookEntryId = insertBookResult.rows[0].book_id;
 
   return bookEntryId;
 }

@@ -2,6 +2,7 @@ import db from './db.js';
 
 /* 1.  Function to add a new book item */
 export async function addNewBook({ title, author, year_i_read_it, my_rating, guidance_notes, first_name, surname }) {
+  console.log({ title, author, year_i_read_it, my_rating, guidance_notes, first_name, surname });
   // Look up userId from first_name and surname
   const userQuery = "SELECT id FROM users WHERE first_name ILIKE $1 AND surname ILIKE $2 LIMIT 1";
 

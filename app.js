@@ -62,8 +62,8 @@ app.post('/addBook', async (req, res) => {
   /* Handles form submission for adding a book */
   try {
         console.log("Incoming request body:", req.body); 
-        const { title, author, yearRead, rating, guidanceNotes, first_name, surname } = req.body;
-        await addNewBook({ title, author, yearRead, rating, guidanceNotes, first_name, surname });
+        const { title, author, year_i_read_it, my_rating, guidance_notes, first_name, surname } = req.body;
+        await addNewBook({ title, author, year_i_read_it, my_rating, guidance_notes, first_name, surname });
     // Redirect to show that specific user's book list
         const user = await getUser({ first_name, surname }); 
         const books = await getBooksByUser({ first_name, surname });
@@ -193,8 +193,8 @@ app.get('/sortByRating', async (req, res) => {
 app.post('/edit', async (req, res) => {
     /* Allows user to edit book details */
     try {
-        const { book_id, title, author, yearRead, rating, guidanceNotes, first_name, surname } = req.body;
-        await editBook({ book_id, title, author, yearRead, rating, guidanceNotes, first_name, surname });
+        const { book_id, title, author, year_i_read_it, my_rating, guidance_notes, first_name, surname } = req.body;
+        await editBook({ book_id, title, author, year_i_read_it, my_rating, guidance_notes, first_name, surname });
         const books = await getBooksByUser({ first_name, surname });
         res.render('index', { books, first_name, surname, userId: user.id, activePage: 'home' });
         } catch (error) {

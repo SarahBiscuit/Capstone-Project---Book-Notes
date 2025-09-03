@@ -1,7 +1,7 @@
 import db from './db.js';
 
 /* 1.  Function to add a new book item */
-export async function addNewBook({ title, author, yearRead, rating, guidanceNotes, first_name, surname }) {
+export async function addNewBook({ title, author, year_i_read_it, my_rating, guidance_notes, first_name, surname }) {
   // Look up userId from first_name and surname
   const userQuery = "SELECT id FROM users WHERE first_name ILIKE $1 AND surname ILIKE $2 LIMIT 1";
 
@@ -49,12 +49,12 @@ export async function addNewBook({ title, author, yearRead, rating, guidanceNote
 
   // Insert book reading details linked to userReads
   const insertBookQuery = `
-    INSERT INTO books (user_id, book_id, year_I_read_it, my_rating, guidance_notes)
+    INSERT INTO books (user_id, book_id, year_i_read_it, my_rating, guidance_notes)
     VALUES ($1, $2, $3, $4, $5)
     RETURNING book_id;
   `;
 
-  const insertBookResult = await db.query(insertBookQuery, [userId, titleAuthorId, yearRead, rating, guidanceNotes]);
+  const insertBookResult = await db.query(insertBookQuery, [userId, titleAuthorId, year_i_read_it, my_rating, guidance_notes]);
   const bookEntryId = insertBookResult.rows[0].book_id;
 
   return bookEntryId;
@@ -83,7 +83,7 @@ export async function addNewUser({ first_name, surname }) {
 /* 3.  Function to get all book items */
 export async function getAllBooks() {
   const query = `
-  SELECT b.book_id, ta.author, ta.title, b.year_I_read_it, b.my_rating, b.guidance_notes, u.surname, u.first_name
+  SELECT b.book_id, ta.author, ta.title, b.year_i_read_it, b.my_rating, b.guidance_notes, u.surname, u.first_name
   FROM books b
   JOIN users u on b.user_id = u.id
   JOIN titlesAuthors ta on b.book_id = ta.id
@@ -98,7 +98,7 @@ export async function getAllBooks() {
 /* 4.  Function to get all book items for a specific user */
 export async function getBooksByUser({ first_name, surname }) {
   const query = `
-  SELECT b.book_id, ta.author, ta.title, b.year_I_read_it, b.my_rating, b.guidance_notes, u.surname, u.first_name
+  SELECT b.book_id, ta.author, ta.title, b.year_i_read_it, b.my_rating, b.guidance_notes, u.surname, u.first_name
   FROM books b
   JOIN users u on b.user_id = u.id
   JOIN titlesAuthors ta on b.book_id = ta.id
@@ -149,7 +149,7 @@ export async function sortByYearRead({ first_name, surname }) {
   // no user found - return all books sorted by year read
   if (!first_name || !surname) {
     const query = `
-      SELECT b.book_id, ta.title, ta.author, b.year_I_read_it, b.my_rating, b.guidance_notes
+      SELECT b.book_id, ta.title, ta.author, b.year_i_read_it, b.my_rating, b.guidance_notes
       FROM books b
       JOIN users u ON b.user_id = u.id
       JOIN titlesAuthors ta ON b.book_id = ta.id
@@ -173,7 +173,7 @@ export async function sortByYearRead({ first_name, surname }) {
   }
 
   const query = `
-    SELECT b.book_id, ta.title, ta.author, b.year_I_read_it, b.my_rating, b.guidance_notes
+    SELECT b.book_id, ta.title, ta.author, b.year_i_read_it, b.my_rating, b.guidance_notes
     FROM books b
     JOIN users u ON b.user_id = u.id
     JOIN titlesAuthors ta ON b.book_id = ta.id
@@ -196,7 +196,7 @@ export async function sortByRating({ first_name, surname }) {
   // no user found - return all books sorted by rating
   if (!first_name || !surname) {
     const query = `
-      SELECT b.book_id, ta.title, ta.author, b.year_I_read_it, b.my_rating, b.guidance_notes
+      SELECT b.book_id, ta.title, ta.author, b.year_i_read_it, b.my_rating, b.guidance_notes
       FROM books b
       JOIN users u ON b.user_id = u.id
       JOIN titlesAuthors ta ON b.book_id = ta.id
@@ -220,7 +220,7 @@ export async function sortByRating({ first_name, surname }) {
   }
 
   const query = `
-    SELECT b.book_id, ta.title, ta.author, b.year_I_read_it, b.my_rating, b.guidance_notes
+    SELECT b.book_id, ta.title, ta.author, b.year_i_read_it, b.my_rating, b.guidance_notes
     FROM books b
     JOIN users u ON b.user_id = u.id
     JOIN titlesAuthors ta ON b.book_id = ta.id
@@ -243,9 +243,9 @@ export async function editBook({
   bookId, // ID from 'books' table
   title,
   author,
-  yearRead,
-  rating,
-  guidanceNotes,
+  year_i_read_it,
+  my_rating,
+  guidance_notes,
   first_name,
   surname
 }) {
@@ -288,16 +288,16 @@ export async function editBook({
         UPDATE books
         SET
           book_id = $1,
-          year_I_read_it = COALESCE($2, year_I_read_it),
+          year_i_read_it = COALESCE($2, year_I_read_it),
           my_rating = COALESCE($3, my_rating),
           guidance_notes = COALESCE($4, guidance_notes)
         WHERE book_id = $5 AND user_id = $6
       `;
       await client.query(updateBooksQuery, [
         newTitlesAuthorsId,
-        yearRead,
-        rating,
-        guidanceNotes,
+        year_i_read_it,
+        my_rating,
+        guidance_notes,
         bookId,
         user.id
       ]);
@@ -314,15 +314,15 @@ export async function editBook({
       const updateOnlyBookDetailsQuery = `
         UPDATE books
         SET
-          year_I_read_it = COALESCE($1, year_I_read_it),
+          year_I_read_it = COALESCE($1, year_i_read_it),
           my_rating = COALESCE($2, my_rating),
           guidance_notes = COALESCE($3, guidance_notes)
         WHERE book_id = $4 AND user_id = $5
       `;
       await client.query(updateOnlyBookDetailsQuery, [
-        yearRead,
-        rating,
-        guidanceNotes,
+        year_i_read_it,
+        my_rating,
+        guidance_notes,
         bookId,
         user.id
       ]);

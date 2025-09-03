@@ -33,17 +33,17 @@
                     <label for="title">Title: </label>
                     <input type="text" class="form-control" id="title" name="title" required>
                     
-                    <label for="yearRead">Year You Read It: </label>
-                    <input type="number" class="form-control" id="yearRead" name="yearRead" required>
+                    <label for="year_i_read_it">Year You Read It: </label>
+                    <input type="number" class="form-control" id="year_i_read_it" name="year_i_read_it" required>
                     
-                    <label for="guidanceNotes">Your review notes on this book: </label>
+                    <label for="guidance_notes">Your review notes on this book: </label>
                     <textarea name="guidance_notes" id="guidance_notes" class="form-control" type="text"></textarea>
                 </div>
 
                 <!-- Rating Field -->
                 <div class="form-group mb-3">
-                    <label for="rating">How would you rate this book? (1 = worst, 10 = best)</label>
-                    <select class="form-control" id="rating" name="rating" required>
+                    <label for="my_rating">How would you rate this book? (1 = worst, 10 = best)</label>
+                    <select class="form-control" id="my_rating" name="my_rating" required>
                         <option value="">Select a rating</option>
                         <% for (var i = 1; i <= 10; i++) { %>
                             <option value="<%= i %>"><%= i %></option>

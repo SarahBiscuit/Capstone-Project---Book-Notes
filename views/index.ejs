@@ -53,11 +53,11 @@
       <div class="card h-100">
         <img src="<%= book.img || '' %>" class="card-img-top" alt="Book image">
         <div class="card-body">
-          <h5 class="card-title"><%= book.title || '' %></h5>
-          <p class="card-text"><%= book.author || '' %></p>
-          <p class="card-text"><%= book.rating || '' %></p>
-          <p class="card-text"><%= book.yearRead || '' %></p>
-          <p class="card-text"><%= book.guidanceNotes || '' %></p>
+          <h5 class="card-title"><b>Title:</b> <%= book.title || '' %></h5>
+          <p class="card-text"><b>Author:</b> <%= book.author || '' %></p>
+          <p class="card-text"><b>User's Rating Out of 10:</b> <%= book.my_rating || '' %></p>
+          <p class="card-text"><b>Year User Read It:</b> <%= book.year_i_read_it || '' %></p>
+          <p class="card-text"><b>User's Notes:</b> <%= book.guidance_notes || '' %></p>
           
 <% /* Edit Form in Bootstrap modal */ %>
       <% /* Edit Button */ %>
@@ -88,13 +88,13 @@
           </div>
 
           <div class="mb-3">
-            <label for="year_read" class="form-label">Year You Read This Book</label>
-            <input type="number" name="year_read" id="year_read" class="form-control" value="<%= book.year_read %>" />
+            <label for="year_i_read_it" class="form-label">Year You Read This Book</label>
+            <input type="number" name="year_i_read_it" id="year_i_read_it" class="form-control" value="<%= book.year_i_read_it %>" />
           </div>
 
           <div class="mb-3">
-            <label for="rating" class="form-label">Rating</label>
-            <input type="number" name="rating" id="rating" class="form-control" value="<%= book.rating %>" min="1" max="10" />
+            <label for="my_rating" class="form-label">Rating</label>
+            <input type="number" name="my_rating" id="my_rating" class="form-control" value="<%= book.my_rating %>" min="1" max="10" />
           </div>
 
           <div class="mb-3">

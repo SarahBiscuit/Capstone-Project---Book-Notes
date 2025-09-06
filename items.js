@@ -61,7 +61,6 @@ export async function addNewBook({ title, author, year_i_read_it, my_rating, gui
   return bookEntryId;
 }
 
-
 /* 2.  Function to add a new user */
 export async function addNewUser({ first_name, surname }) {
 
@@ -80,7 +79,6 @@ export async function addNewUser({ first_name, surname }) {
   await db.query(insertQuery, [first_name, surname]);
 }
 
-
 /* 3.  Function to get all book items */
 export async function getAllBooks() {
   const query = `
@@ -94,7 +92,6 @@ export async function getAllBooks() {
   const result = await db.query(query);
   return result.rows;
 }
-
 
 /* 4.  Function to get all book items for a specific user */
 export async function getBooksByUser({ first_name, surname }) {
@@ -113,7 +110,6 @@ export async function getBooksByUser({ first_name, surname }) {
   return result.rows;
 }
 
-
 /* 5.  Function to get all users */
 export async function getAllUsers() {
   const query = `
@@ -127,7 +123,6 @@ export async function getAllUsers() {
   }
   return result.rows;
 }
-
 
 /* 6.  Function to get a specific user */
 export async function getUser({ first_name, surname }) {
@@ -144,7 +139,6 @@ export async function getUser({ first_name, surname }) {
   return result.rows[0];
 }
 
-
 /* 7.  Function to sort all books by year read */
 export async function sortByYearRead({ first_name, surname }) {
   // no user found - return all books sorted by year read
@@ -154,7 +148,7 @@ export async function sortByYearRead({ first_name, surname }) {
       FROM books b
       JOIN users u ON b.user_id = u.id
       JOIN titlesAuthors ta ON b.book_id = ta.id
-      ORDER BY b.year_I_read_it DESC, ta.author ASC, ta.title ASC;
+      ORDER BY b.year_i_read_it DESC, ta.author ASC, ta.title ASC;
     `;
     const result = await db.query(query);
 
@@ -179,7 +173,7 @@ export async function sortByYearRead({ first_name, surname }) {
     JOIN users u ON b.user_id = u.id
     JOIN titlesAuthors ta ON b.book_id = ta.id
     WHERE b.user_id = $1
-    ORDER BY b.year_I_read_it DESC, ta.author ASC, ta.title ASC;
+    ORDER BY b.year_i_read_it DESC, ta.author ASC, ta.title ASC;
   `;
 
   const result = await db.query(query, [user.id]);
@@ -190,7 +184,6 @@ export async function sortByYearRead({ first_name, surname }) {
 
   return result.rows;
 }
-
 
 /* 8.  Function to sort by rating */
 export async function sortByRating({ first_name, surname }) {
@@ -237,7 +230,6 @@ export async function sortByRating({ first_name, surname }) {
 
   return result.rows;
 }
-
 
 /* 9.  Function to edit a book item */
 export async function editBook({
@@ -289,7 +281,7 @@ export async function editBook({
         UPDATE books
         SET
           book_id = $1,
-          year_i_read_it = COALESCE($2, year_I_read_it),
+          year_i_read_it = COALESCE($2, year_i_read_it),
           my_rating = COALESCE($3, my_rating),
           guidance_notes = COALESCE($4, guidance_notes)
         WHERE book_id = $5 AND user_id = $6
@@ -337,7 +329,6 @@ export async function editBook({
     client.release();
   }
 }
-
 
 /* 10.  Function to delete a book item */
 // Function to delete an item by id

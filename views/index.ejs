@@ -65,7 +65,7 @@
   Edit 
 </button>
 <% /* Modal */ %>
-<div class="modal fade" id="editModal_<%= book.book_id %>" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+<div class="modal fade" id="editModal_<%= book.book_id %>" tabindex="-1" role="dialog" aria-labelledby="editModal_<%= book.book_id %>" aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <form method="POST" action="/edit">
@@ -80,43 +80,43 @@
           <input type="hidden" name="book_id" value="<%= book.book_id %>" />
 
           <div class="mb-3">
-            <label for="title" class="form-label">Title</label>
-            <input type="text" name="title" id="title" class="form-control" value="<%= book.title %>" />
+            <label for="title_<%= book.book_id %>" class="form-label">Title</label>
+  <input type="text" name="title" id="title_<%= book.book_id %>" class="form-control" value="<%= book.title %>" />
           </div>
 
           <div class="mb-3">
-            <label for="author" class="form-label">Author</label>
-            <input type="text" name="author" id="author" class="form-control" value="<%= book.author %>" />
+            <label for="author_<%= book.book_id %>" class="form-label">Author</label>
+            <input type="text" name="author" id="author_<%= book.book_id %>" class="form-control" value="<%= book.author %>" />
           </div>
 
           <div class="mb-3">
-            <label for="year_i_read_it" class="form-label">Year You Read This Book</label>
-            <input type="number" name="year_i_read_it" id="year_i_read_it" class="form-control" value="<%= book.year_i_read_it %>" />
+            <label for="year_i_read_it_<%= book.book_id %>" class="form-label">Year You Read This Book</label>
+            <input type="number" name="year_i_read_it" id="year_i_read_it_<%= book.book_id %>" class="form-control" value="<%= book.year_i_read_it %>" />
           </div>
 
           <div class="mb-3">
-            <label for="my_rating" class="form-label">Rating</label>
-            <input type="number" name="my_rating" id="my_rating" class="form-control" value="<%= book.my_rating %>" min="1" max="10" />
+            <label for="my_rating_<%= book.book_id %>" class="form-label">Rating</label>
+            <input type="number" name="my_rating" id="my_rating_<%= book.book_id %>" class="form-control" value="<%= book.my_rating %>" min="1" max="10" />
           </div>
 
           <div class="mb-3">
-            <label for="guidance_notes" class="form-label">Your Book Review</label>
-            <textarea type="text" name="guidance_notes" id="guidance_notes" class="form-control"><%= book.guidance_notes || '' %></textarea>
+            <label for="guidance_notes_<%= book.book_id %>" class="form-label">Your Book Review</label>
+            <textarea type="text" name="guidance_notes" id="guidance_notes_<%= book.book_id %>" class="form-control"><%= book.guidance_notes || '' %></textarea>
           </div>
 
           <div class="mb-3">
-            <label for="first_name" class="form-label">User First Name</label>
-            <input type="text" name="first_name" id="first_name" class="form-control" value="<%= first_name %>" />
+            <label for="first_name_<%= book.user_id %>" class="form-label">User First Name</label>
+            <input type="text" name="first_name" id="first_name_<%= book.user_id %>" class="form-control" value="<%= first_name %>" />
           </div>
 
           <div class="mb-3">
-            <label for="surname" class="form-label">User Surname</label>
-            <input type="text" name="surname" id="surname" class="form-control" value="<%= surname %>" />
+            <label for="surname_<%= book.user_id %>" class="form-label">User Surname</label>
+            <input type="text" name="surname" id="surname_<%= book.user_id %>" class="form-control" value="<%= surname %>" />
           </div>
 
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
           <button type="submit" class="btn btn-primary">Save changes</button>
         </div>
       </form>

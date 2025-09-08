@@ -59,17 +59,18 @@ app.get('/searchUser', async (req, res) => {
 });
 
 app.post('/addBook', async (req, res) => {
+  // Declare outside try to be accessible in catch
+  let first_name, surname, user;
+
   try {
     console.log("Incoming request body:", req.body); 
-    const { title, author, year_i_read_it, my_rating, guidance_notes, first_name, surname } = req.body;
+    ({ title, author, year_i_read_it, my_rating, guidance_notes, first_name, surname } = req.body);
 
     // Call addNewBook and store the result
     const result = await addNewBook({ title, author, year_i_read_it, my_rating, guidance_notes, first_name, surname });
 
-    // If the addNewBook returned an error object, handle it immediately
     if (result && result.success === false) {
-      // Fetch user and books to render homepage with error message
-      const user = await getUser({ first_name, surname }); 
+      user = await getUser({ first_name, surname }); 
       const books = await getBooksByUser({ first_name, surname });
 
       return res.status(400).render('index', {
@@ -82,8 +83,7 @@ app.post('/addBook', async (req, res) => {
       });
     }
 
-    // On success, fetch user and books normally
-    const user = await getUser({ first_name, surname }); 
+    user = await getUser({ first_name, surname }); 
     const books = await getBooksByUser({ first_name, surname });
 
     res.render('index', {
@@ -91,12 +91,21 @@ app.post('/addBook', async (req, res) => {
       first_name,
       surname,
       userId: user ? user.id : null,
-      activePage: 'home',
+      activePage: 'home'
     });
 
   } catch (error) {
-    console.error('Error adding book:', error.stack);
-    res.status(500).send('Internal Server Error');
+    console.error('Error in /addBook:', error);
+
+    // Use the declared first_name, surname, and user variables here safely
+    res.status(500).render('index', { 
+      books: [], 
+      first_name: first_name || null,
+      surname: surname || null,
+      userId: user ? user.id : null,
+      errorMessage: 'An unexpected error occurred. Please try again later.',
+      activePage: 'home' 
+    });
   }
 });
 

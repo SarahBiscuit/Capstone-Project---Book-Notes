@@ -31,6 +31,13 @@
     </div>
 </div>
 
+<% /* Error Message Display */ %>
+<% if (typeof errorMessage !== 'undefined' && errorMessage) { %>
+  <div class="alert alert-danger" role="alert">
+    <%= errorMessage %>
+  </div>
+<% } %>
+
 <% /* Sort By Rating */ %>
            <form action="/sortByRating" method="GET" style="display:inline;">
             <input type="hidden" name="userId" value="<%= userId %>">

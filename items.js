@@ -2,101 +2,107 @@ import db from './db.js';
 
 /* 1.  Function to add a new book item */
 export async function addNewBook({
-  title,
-  author,
+  title = '',
+  author = '',
   year_i_read_it,
   my_rating,
-  guidance_notes,
-  first_name,
-  surname
+  guidance_notes = '',
+  first_name = '',
+  surname = ''
 }) {
-  console.log({ title, author, year_i_read_it, my_rating, guidance_notes, first_name, surname });
+  try {
+    console.log("addNewBook: Start");
+    console.log({ title, author, year_i_read_it, my_rating, guidance_notes, first_name, surname });
 
-  // Normalize user input
-  const cleanedFirstName = first_name.trim().toUpperCase();
-  const cleanedSurname = surname.trim().toUpperCase();
+    // Normalize user input
+    const cleanedFirstName = first_name.trim().toUpperCase();
+    const cleanedSurname = surname.trim().toUpperCase();
 
-  // Look up user ID
-  const userQuery = `
-    SELECT id FROM users
-    WHERE UPPER(TRIM(first_name)) = $1 AND UPPER(TRIM(surname)) = $2
-    LIMIT 1;
-  `;
-  const userResult = await db.query(userQuery, [cleanedFirstName, cleanedSurname]);
+    // Look up user ID
+    const userQuery = `
+      SELECT id FROM users
+      WHERE UPPER(TRIM(first_name)) = $1 AND UPPER(TRIM(surname)) = $2
+      LIMIT 1;
+    `;
+    const userResult = await db.query(userQuery, [cleanedFirstName, cleanedSurname]);
 
-  if (userResult.rowCount === 0) {
+    if (userResult.rowCount === 0) {
+      return {
+        success: false,
+        message: 'User not found with the provided first_name and surname'
+      };
+    }
+
+    const userId = userResult.rows[0].id;
+
+    // Normalize title and author
+    const cleanedTitle = title.trim().toUpperCase();
+    const cleanedAuthor = author.trim().toUpperCase();
+
+    // Check if user and book already exist in userReads
+    const userBookMatchQuery = `
+      SELECT * FROM userReads
+      WHERE user_id = $1 AND book_id = (
+        SELECT id FROM titlesAuthors
+        WHERE UPPER(TRIM(title)) = $2 AND UPPER(TRIM(author)) = $3
+        LIMIT 1
+      );
+    `;
+    const userBookMatch = await db.query(userBookMatchQuery, [userId, cleanedTitle, cleanedAuthor]);
+
+    if (userBookMatch.rowCount > 0) {
+      return {
+        success: false,
+        message: `This book is already associated with the user ${first_name} ${surname}`
+      };
+    }
+
+    // Insert or get title/author in titlesAuthors
+    const findOrInsertTitleAuthorQuery = `
+      INSERT INTO titlesAuthors (title, author)
+      VALUES ($1, $2)
+      ON CONFLICT (title, author) DO UPDATE SET title = EXCLUDED.title
+      RETURNING id;
+    `;
+    const titleAuthorResult = await db.query(findOrInsertTitleAuthorQuery, [cleanedTitle, cleanedAuthor]);
+    const titleAuthorId = titleAuthorResult.rows[0].id;
+
+    // Insert userReads entry
+    const findOrInsertUserReadsQuery = `
+      INSERT INTO userReads (user_id, book_id)
+      VALUES ($1, $2)
+      ON CONFLICT DO NOTHING
+      RETURNING id;
+    `;
+    await db.query(findOrInsertUserReadsQuery, [userId, titleAuthorId]);
+
+    // Normalize guidance notes
+    const cleanedNotes = guidance_notes.trim();
+
+    // Insert book record
+    const insertBookQuery = `
+      INSERT INTO books (user_id, book_id, year_i_read_it, my_rating, guidance_notes)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING book_id;
+    `;
+    const insertBookResult = await db.query(insertBookQuery, [
+      userId,
+      titleAuthorId,
+      year_i_read_it,
+      my_rating,
+      cleanedNotes
+    ]);
+
+    const bookEntryId = insertBookResult.rows[0].book_id;
+
     return {
-      success: false,
-      message: 'User not found with the provided first_name and surname'
+      success: true,
+      bookEntryId
     };
+  } catch (err) {
+    console.error("addNewBook threw an error:", err);
+    throw err;
   }
-
-  const userId = userResult.rows[0].id;
-
-  // Normalize title and author
-  const cleanedTitle = title.trim().toUpperCase();
-  const cleanedAuthor = author.trim().toUpperCase();
-
-  // Check if user and book already exist in userReads
-  const userBookMatchQuery = `
-    SELECT * FROM userReads
-    WHERE user_id = $1 AND book_id = (
-      SELECT id FROM titlesAuthors
-      WHERE UPPER(TRIM(title)) = $2 AND UPPER(TRIM(author)) = $3
-      LIMIT 1
-    );
-  `;
-  const userBookMatch = await db.query(userBookMatchQuery, [userId, cleanedTitle, cleanedAuthor]);
-
-  if (userBookMatch.rowCount > 0) {
-    return {
-      success: false,
-      message: `This book is already associated with the user ${first_name} ${surname}`
-    };
-  }
-
-  // Insert or get title/author in titlesAuthors
-  const findOrInsertTitleAuthorQuery = `
-    INSERT INTO titlesAuthors (title, author)
-    VALUES ($1, $2)
-    ON CONFLICT (title, author) DO UPDATE SET title = EXCLUDED.title
-    RETURNING id;
-  `;
-  const titleAuthorResult = await db.query(findOrInsertTitleAuthorQuery, [cleanedTitle, cleanedAuthor]);
-  const titleAuthorId = titleAuthorResult.rows[0].id;
-
-  // Insert userReads entry linking user and book
-  const findOrInsertUserReadsQuery = `
-    INSERT INTO userReads (user_id, book_id)
-    VALUES ($1, $2)
-    ON CONFLICT DO NOTHING
-    RETURNING id;
-  `;
-  await db.query(findOrInsertUserReadsQuery, [userId, titleAuthorId]);
-
-  // Normalize guidance notes
-  const cleanedNotes = guidance_notes.trim();
-
-  // Insert reading details into books table
-  const insertBookQuery = `
-    INSERT INTO books (user_id, book_id, year_i_read_it, my_rating, guidance_notes)
-    VALUES ($1, $2, $3, $4, $5)
-    RETURNING book_id;
-  `;
-  const insertBookResult = await db.query(insertBookQuery, [
-    userId,
-    titleAuthorId,
-    year_i_read_it,
-    my_rating,
-    cleanedNotes
-  ]);
-
-  const bookEntryId = insertBookResult.rows[0].book_id;
-
-  return {
-    success: true,
-    bookEntryId
-  };
 }
 
 /* 2.  Function to add a new user */

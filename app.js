@@ -1,15 +1,21 @@
 //Main entry point for the application
 
 import express from "express";
-import bodyParser from "body-parser";
 
 import { addNewBook, addNewUser, getAllBooks, getBooksByUser, getAllUsers, getUser, sortByYearRead, sortByRating, editBook, deleteItem, getUserById } from './items.js';
 
 const app = express();
 
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
 app.set('view engine', 'ejs');
-app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
+
+app.use((req, res, next) => {
+  console.log(`🚨 Route not matched: ${req.method} ${req.url}`);
+  next();
+});
 
 /* Render blank index.js page */
 app.get('/', async (req, res) => {
@@ -59,14 +65,22 @@ app.get('/searchUser', async (req, res) => {
 });
 
 app.post('/addBook', async (req, res) => {
-  // Declare outside try to be accessible in catch
+  console.log("🛬 /addBook POST route was triggered");
   let first_name, surname, user;
+  console.log('🚀 /addBook route hit');
+  console.log('✅ Calling addNewBook...');
 
   try {
     console.log("Incoming request body:", req.body); 
-    ({ title, author, year_i_read_it, my_rating, guidance_notes, first_name, surname } = req.body);
 
-    // Call addNewBook and store the result
+    // ✅ Wrap this safely
+    if (!req.body) {
+      throw new Error("Missing request body");
+    }
+
+    const { title, author, year_i_read_it, my_rating, guidance_notes, first_name, surname } = req.body;
+
+    // Continue normally
     const result = await addNewBook({ title, author, year_i_read_it, my_rating, guidance_notes, first_name, surname });
 
     if (result && result.success === false) {
@@ -97,18 +111,16 @@ app.post('/addBook', async (req, res) => {
   } catch (error) {
     console.error('Error in /addBook:', error);
 
-    // Use the declared first_name, surname, and user variables here safely
     res.status(500).render('index', { 
       books: [], 
       first_name: first_name || null,
       surname: surname || null,
       userId: user ? user.id : null,
-      errorMessage: 'An unexpected error occurred. Please try again later.',
+      errorMessage: `An unexpected error occurred: ${error.message}`,
       activePage: 'home' 
     });
   }
 });
-
 
 
 app.post('/addUser', async (req, res) => {

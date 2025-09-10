@@ -175,7 +175,10 @@ export async function getBooksByUser({ first_name, surname }) {
   `
   const result = await db.query(query, [first_name, surname]);
   if (result.rowCount === 0) {
-    throw new Error('No books found for the specified user');
+     return {
+        success: false,
+        message: 'No books found for the specified user',
+      };
   }
   return result.rows;
 }

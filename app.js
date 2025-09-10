@@ -129,19 +129,19 @@ app.post('/addUser', async (req, res) => {
     const result = await addNewUser({ first_name, surname });
 
     let books = [];
-    let errorMessage = null;
+    let errorMessages = [];  // Array to hold multiple error messages
     let userId = null;
 
     if (result.success === false) {
-      // User add failed (e.g., user exists)
-      errorMessage = result.message;
+      // User add failed (e.g., user exists or db error)
+      errorMessages.push(result.message || 'Failed to add user');
 
       // Instead of no books, get ALL books from all users
       try {
-        books = await getAllBooks();  // You’ll need to implement this function to fetch all books
+        books = await getAllBooks();  // Fetch all books
       } catch (err) {
         console.warn('Error fetching all books:', err.message);
-        // Just show empty if all-books fetch also fails
+        // Show empty if all-books fetch also fails
         books = [];
       }
 
@@ -150,17 +150,34 @@ app.post('/addUser', async (req, res) => {
 
       // User added successfully, get books for this user only
       try {
-        books = await getBooksByUser({ first_name, surname });
+        const booksResult = await getBooksByUser({ first_name, surname });
+
+        if (Array.isArray(booksResult)) {
+          // Success case: got book rows
+          books = booksResult;
+        } else if (booksResult && booksResult.success === false) {
+          // getBooksByUser returned an error message
+          errorMessages.push(booksResult.message || 'No books found for user');
+          books = [];
+        } else {
+          // Unexpected shape from getBooksByUser
+          errorMessages.push('Unexpected result from getBooksByUser');
+          books = [];
+        }
+
       } catch (err) {
-        console.warn('No books found or error fetching books:', err.message);
-        errorMessage = err.message;
+        console.warn('Error fetching books by user:', err.message);
+        errorMessages.push('Error fetching books by user');
         books = [];
       }
 
     } else {
-      // Unexpected result shape
-      errorMessage = 'Unexpected result from addNewUser';
+      // Unexpected result shape from addNewUser
+      errorMessages.push('Unexpected result from addNewUser');
     }
+
+    // Join error messages into one string or null if empty
+    const errorMessage = errorMessages.length > 0 ? errorMessages.join('. ') : null;
 
     res.render('index', {
       books,
@@ -183,7 +200,6 @@ app.post('/addUser', async (req, res) => {
     });
   }
 });
-
 
 app.get('/addUser', async (req, res) => {
     /* Renders the new user form page */

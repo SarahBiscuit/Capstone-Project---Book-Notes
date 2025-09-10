@@ -29,7 +29,7 @@ export async function addNewBook({
     if (userResult.rowCount === 0) {
       return {
         success: false,
-        message: 'User not found with the provided first_name and surname'
+        message: 'User not found with the provided first name and surname'
       };
     }
 

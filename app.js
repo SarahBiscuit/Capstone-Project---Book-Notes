@@ -71,31 +71,29 @@ app.post('/addBook', async (req, res) => {
   console.log('✅ Calling addNewBook...');
 
   try {
-    console.log("Incoming request body:", req.body); 
-
-    // ✅ Wrap this safely
-    if (!req.body) {
-      throw new Error("Missing request body");
-    }
-
+   
     const { title, author, year_i_read_it, my_rating, guidance_notes, first_name, surname } = req.body;
 
     // Continue normally
     const result = await addNewBook({ title, author, year_i_read_it, my_rating, guidance_notes, first_name, surname });
 
     if (result && result.success === false) {
-      user = await getUser({ first_name, surname }); 
-      const books = await getBooksByUser({ first_name, surname });
+  user = await getUser({ first_name, surname }); 
+  
+  let books = [];
+  if (user && user.id) {
+    books = await getBooksByUser({ first_name, surname });
+  }
 
-      return res.status(400).render('index', {
-        books,
-        first_name,
-        surname,
-        userId: user ? user.id : null,
-        activePage: 'home',
-        errorMessage: result.message
-      });
-    }
+  return res.status(400).render('index', {
+    books,
+    first_name,
+    surname,
+    userId: user ? user.id : null,
+    activePage: 'home',
+    errorMessage: result.message // ✅ Keep the original error from addNewBook
+  });
+}
 
     user = await getUser({ first_name, surname }); 
     const books = await getBooksByUser({ first_name, surname });

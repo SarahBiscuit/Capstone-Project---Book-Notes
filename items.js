@@ -107,20 +107,46 @@ export async function addNewBook({
 
 /* 2.  Function to add a new user */
 export async function addNewUser({ first_name, surname }) {
+  try {
+    // Normalize input early
+    const cleanedFirstName = first_name.trim().toUpperCase();
+    const cleanedSurname = surname.trim().toUpperCase();
 
-  // Check if the user already exists
-  const checkQuery = 'SELECT id FROM users WHERE first_name ILIKE $1 AND surname ILIKE $2';
-  const alreadyMatch = await db.query(checkQuery, [first_name, surname]);
-  if (alreadyMatch.rowCount > 0) {
-    throw new Error('User already exists with the provided first_name and surname');
+    // Check if user exists (using normalized input)
+    const checkQuery = `
+      SELECT id FROM users 
+      WHERE UPPER(TRIM(first_name)) = $1 AND UPPER(TRIM(surname)) = $2
+      LIMIT 1
+    `;
+    const alreadyMatch = await db.query(checkQuery, [cleanedFirstName, cleanedSurname]);
+
+    if (alreadyMatch.rowCount > 0) {
+      return {
+        success: false,
+        message: 'User already exists with the provided first name and surname'
+      };
+    }
+
+    // Insert the new user
+    const insertQuery = `
+      INSERT INTO users (first_name, surname)
+      VALUES ($1, $2)
+      RETURNING id
+    `;
+    const insertResult = await db.query(insertQuery, [cleanedFirstName, cleanedSurname]);
+
+    return {
+      success: true,
+      userId: insertResult.rows[0].id
+    };
+
+  } catch (error) {
+    console.error("Error in addNewUser:", error);
+    return {
+      success: false,
+      message: `Database error: ${error.message}`
+    };
   }
-
-  // Insert the new user
-  const insertQuery = `
-    INSERT INTO users (first_name, surname)
-    VALUES ($1, $2)
-    RETURNING id`;
-  await db.query(insertQuery, [first_name, surname]);
 }
 
 /* 3.  Function to get all book items */

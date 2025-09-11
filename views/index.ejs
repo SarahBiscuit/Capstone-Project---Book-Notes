@@ -1,6 +1,6 @@
 <%- include("partials/header.ejs") %>
 
-<div class="container headerBoxes">
+<div class="container headerBoxes" id="headerBoxesHomepage">
 <% /* Main header */ %>
     <div class="container bookNotesHeader">
         <h1><span><b>Books We Recommend</b></span></h1>
@@ -13,7 +13,6 @@
             <p><span><b>Because there is nothing better than a good book.</b></span></p>
         </h3>
     </div>
-</div>
 
 <div class="headerBoxes">
 <% /* Header bar with user name in */ %>
@@ -22,6 +21,8 @@
             <%= (first_name && surname) ? `User Name - ${first_name} ${surname}` : 'Select a user to view their book recommendations' %>
         </h2>
     </div>
+
+</div>
 
 <% /* Sub Header */ %>
     <div class="container bookNotesSubHeader">

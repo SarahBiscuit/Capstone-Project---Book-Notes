@@ -141,10 +141,13 @@ app.post('/addUser', async (req, res) => {
 
       // Instead of no books, get ALL books from all users
       try {
-        books = await getAllBooks();  // Fetch all books
+        const { books: allBooks, error } = await getAllBooks();
+        if (error) {
+          errorMessages.push(error);
+        }
+        books = allBooks;  // assign correctly here
       } catch (err) {
         console.warn('Error fetching all books:', err.message);
-        // Show empty if all-books fetch also fails
         books = [];
       }
 
@@ -217,14 +220,22 @@ app.get('/addUser', async (req, res) => {
 app.get('/Home', async (req, res) => {
     /* renders the home page */
     try {
-        //Get all books (no default user selected)//
-        const books = await getAllBooks();
-        res.render('index', { books, userId: user.id, activePage: 'home' });
-    } catch (error) {
-        console.error('Error fetching books:', error.stack);
-        res.status(500).send('Internal Server Error');
-}
-});  
+    const { books, error } = await getAllBooks();
+
+    res.render("index", {
+      first_name: '',  // no user yet
+      surname: '',
+      userId: null,
+      books,
+      activePage: "home",
+      errorMessage: error  // Pass error message to view
+    });
+
+  } catch (error) {
+    console.error('Unexpected error in GET / route:', error.stack);
+    res.status(500).send('Internal Server Error');
+  }
+});
 
 app.get('/addBook', async (req, res) => {
     /* Renders the new book form page */

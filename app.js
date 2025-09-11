@@ -19,21 +19,24 @@ app.use((req, res, next) => {
 
 /* Render blank index.js page */
 app.get('/', async (req, res) => {
-    try {
-        //Get all books (no default user selected)//
-        const books = await getAllBooks();
-        res.render("index", { 
-            first_name: '',  // no user yet
-            surname: '',
-            userId: null,
-            books: books || [], 
-            activePage: "home"  
-        });
-    } catch (error) {
-        console.error('Error fetching books:', error.stack);
-        res.status(500).send('Internal Server Error');
-}
-});  
+  try {
+    const { books, error } = await getAllBooks();
+
+    res.render("index", {
+      first_name: '',  // no user yet
+      surname: '',
+      userId: null,
+      books,
+      activePage: "home",
+      errorMessage: error  // Pass error message to view
+    });
+
+  } catch (error) {
+    console.error('Unexpected error in GET / route:', error.stack);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
 
 app.get('/searchUser', async (req, res) => {
   try {
@@ -243,7 +246,8 @@ app.get('/searchForUser', async (req, res) => {
 
     // Fetch user first
     const user = await getUser({ first_name, surname });
-    if (!user) {
+    if (user === false) {
+      
       return res.status(404).send('User not found');
     }
 

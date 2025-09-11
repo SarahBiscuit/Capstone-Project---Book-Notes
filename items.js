@@ -152,15 +152,20 @@ export async function addNewUser({ first_name, surname }) {
 /* 3.  Function to get all book items */
 export async function getAllBooks() {
   const query = `
-  SELECT b.book_id, ta.author, ta.title, b.year_i_read_it, b.my_rating, b.guidance_notes, u.surname, u.first_name
-  FROM books b
-  JOIN users u on b.user_id = u.id
-  JOIN titlesAuthors ta on b.book_id = ta.id
-  ORDER BY u.surname ASC, u.first_name ASC, ta.author ASC, ta.title ASC;
-  `
+    SELECT b.book_id, ta.author, ta.title, b.year_i_read_it, b.my_rating, b.guidance_notes, u.surname, u.first_name
+    FROM books b
+    JOIN users u on b.user_id = u.id
+    JOIN titlesAuthors ta on b.book_id = ta.id
+    ORDER BY u.surname ASC, u.first_name ASC, ta.author ASC, ta.title ASC;
+  `;
 
-  const result = await db.query(query);
-  return result.rows;
+  try {
+    const result = await db.query(query);
+    return { books: result.rows, error: null };
+  } catch (err) {
+    console.error("Error fetching books:", err.stack);
+    return { books: [], error: "Unable to load books at this time." };
+  }
 }
 
 /* 4.  Function to get all book items for a specific user */

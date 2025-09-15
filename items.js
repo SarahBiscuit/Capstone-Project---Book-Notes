@@ -234,23 +234,19 @@ export async function getUser({ first_name, surname }) {
   const query = `
     SELECT id, first_name, surname
     FROM users 
-    WHERE first_name ILIKE $1 AND surname ILIKE $2
+    WHERE TRIM(first_name) ILIKE TRIM($1) 
+      AND TRIM(surname) ILIKE TRIM($2)
     ORDER BY surname ASC, first_name ASC
     LIMIT 1
   `;
+
   const result = await db.query(query, [first_name, surname]);
 
   if (result.rowCount === 0) {
-    return {
-      success: false,
-      message: 'No user found with the provided first_name and surname'
-    };
+    return null; // or false, but null is simpler for "not found"
   }
 
-  return {
-    success: true,
-    user: result.rows[0]
-  };
+  return result.rows[0];
 }
 
 /* 7.  Function to sort all books by year read */

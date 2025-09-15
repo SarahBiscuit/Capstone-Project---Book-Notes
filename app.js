@@ -259,43 +259,6 @@ app.get('/addBook', async (req, res) => {
     }
 })
 
-app.get('/searchForUser', async (req, res) => {
-  try {
-    const { first_name, surname } = req.query;
-
-    if (!first_name || !surname) {
-      return res.status(400).send('Please provide both first_name and surname');
-    }
-
-    // Fetch user first
-    const user = await getUser({ first_name, surname });
-    if (user === false) {
-      
-      return res.status(404).send('User not found');
-    }
-
-    // Fetch books for the specified user
-    let books = [];
-    try {
-      books = await getBooksByUser({ first_name, surname });
-    } catch {
-      // No books found, continue with empty array
-      books = [];
-    }
-
-    res.render('index', {
-      books,
-      first_name: user.first_name,
-      surname: user.surname,
-      userId: user.id,
-      activePage: 'home'
-    });
-  } catch (error) {
-    console.error('Error fetching books by user:', error.stack);
-    res.status(500).send('Internal Server Error');
-  }
-});
-
 
 app.get('/sortByYear', async (req, res) => {
     /* Sorts books by year read */

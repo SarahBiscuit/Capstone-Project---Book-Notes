@@ -149,6 +149,7 @@ export async function addNewUser({ first_name, surname }) {
   }
 }
 
+
 /* 3.  Function to get all book items */
 export async function getAllBooks() {
   const query = `
@@ -161,31 +162,48 @@ export async function getAllBooks() {
 
   try {
     const result = await db.query(query);
-    return { books: result.rows, error: null };
-  } catch (err) {
-    console.error("Error fetching books:", err.stack);
-    return { books: [], error: "Unable to load books at this time." };
+
+    return {
+      success: true,
+      books: result.rows
+    };
+
+  } catch (error) {
+    console.error("Error in getAllBooks:", error);
+
+    return {
+      success: false,
+      message: "Unable to load books at this time.",
+      books: [] // optional: provide fallback empty array
+    };
   }
 }
 
 /* 4.  Function to get all book items for a specific user */
 export async function getBooksByUser({ first_name, surname }) {
   const query = `
-  SELECT b.book_id, ta.author, ta.title, b.year_i_read_it, b.my_rating, b.guidance_notes, u.surname, u.first_name
-  FROM books b
-  JOIN users u on b.user_id = u.id
-  JOIN titlesAuthors ta on b.book_id = ta.id
-  WHERE u.first_name ILIKE $1 AND u.surname ILIKE $2
-  ORDER BY u.surname ASC, u.first_name ASC,ta.author ASC, ta.title ASC;
-  `
+    SELECT b.book_id, ta.author, ta.title, b.year_i_read_it, b.my_rating, b.guidance_notes, u.surname, u.first_name
+    FROM books b
+    JOIN users u on b.user_id = u.id
+    JOIN titlesAuthors ta on b.book_id = ta.id
+    WHERE UPPER(TRIM(u.first_name)) ILIKE UPPER(TRIM($1)) AND UPPER(TRIM(u.surname)) ILIKE UPPER(TRIM($2))
+    ORDER BY u.surname ASC, u.first_name ASC, ta.author ASC, ta.title ASC;
+  `;
+  
   const result = await db.query(query, [first_name, surname]);
+  
   if (result.rowCount === 0) {
-     return {
-        success: false,
-        message: 'No books found for the specified user',
-      };
+    return {
+      success: false,
+      message: 'No books found for the specified user',
+      books: []
+    };
   }
-  return result.rows;
+
+  return {
+    success: true,
+    books: result.rows
+  };
 }
 
 /* 5. Function to get all users */

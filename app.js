@@ -12,23 +12,21 @@ app.use(express.json());
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
 
-app.use((req, res, next) => {
-  console.log(`🚨 Route not matched: ${req.method} ${req.url}`);
-  next();
-});
 
 /* Render blank index.js page */
 app.get('/', async (req, res) => {
   try {
-    const { books, error } = await getAllBooks();
+    const result = await getAllBooks();
+const books = result.success ? result.books : [];
+const errorMessage = result.success ? null : result.message;
 
-    res.render("index", {
-      first_name: '',  // no user yet
-      surname: '',
-      userId: null,
-      books,
-      activePage: "home",
-      errorMessage: error  // Pass error message to view
+res.render("index", {
+  first_name: '',
+  surname: '',
+  userId: null,
+  books,
+  activePage: "home",
+  errorMessage
     });
 
   } catch (error) {
@@ -42,15 +40,26 @@ app.get('/searchUser', async (req, res) => {
   try {
     const { first_name, surname } = req.query;
     const user = await getUser({ first_name, surname });
+
     if (!user) {
       return res.status(404).send('User not found');
     }
 
     let books = [];
+    let errorMessage = null;
+
     try {
-      books = await getBooksByUser({ first_name, surname });
+      const booksResult = await getBooksByUser({ first_name, surname });
+      if (booksResult.success === false) {
+        // No books found but user exists
+        errorMessage = booksResult.message || 'No books found for this user';
+        books = [];
+      } else {
+        books = booksResult.books || booksResult; // Adjust based on your data structure
+      }
     } catch (err) {
-      console.warn('No books found for user:', err.message);
+      console.warn('Error fetching books:', err.message);
+      errorMessage = 'Error retrieving books for this user';
       books = [];
     }
 
@@ -59,10 +68,12 @@ app.get('/searchUser', async (req, res) => {
       surname: user.surname,
       userId: user.id,
       books,
-      activePage: "home"
+      activePage: "home",
+      errorMessage
     });
+
   } catch (error) {
-    console.error('Error fetching books:', error.stack);
+    console.error('Error fetching user:', error.stack);
     res.status(500).send('Internal Server Error');
   }
 });
@@ -141,11 +152,12 @@ app.post('/addUser', async (req, res) => {
 
       // Instead of no books, get ALL books from all users
       try {
-        const { books: allBooks, error } = await getAllBooks();
-        if (error) {
-          errorMessages.push(error);
+       const result = await getAllBooks();
+        if (result.success === false) {
+          errorMessages.push(result.message);
         }
-        books = allBooks;  // assign correctly here
+        books = result.books;
+
       } catch (err) {
         console.warn('Error fetching all books:', err.message);
         books = [];
@@ -159,14 +171,11 @@ app.post('/addUser', async (req, res) => {
         const booksResult = await getBooksByUser({ first_name, surname });
 
         if (Array.isArray(booksResult)) {
-          // Success case: got book rows
           books = booksResult;
         } else if (booksResult && booksResult.success === false) {
-          // getBooksByUser returned an error message
           errorMessages.push(booksResult.message || 'No books found for user');
           books = [];
         } else {
-          // Unexpected shape from getBooksByUser
           errorMessages.push('Unexpected result from getBooksByUser');
           books = [];
         }
@@ -178,7 +187,6 @@ app.post('/addUser', async (req, res) => {
       }
 
     } else {
-      // Unexpected result shape from addNewUser
       errorMessages.push('Unexpected result from addNewUser');
     }
 
@@ -207,6 +215,7 @@ app.post('/addUser', async (req, res) => {
   }
 });
 
+
 app.get('/addUser', async (req, res) => {
     /* Renders the new user form page */
     try {
@@ -220,22 +229,25 @@ app.get('/addUser', async (req, res) => {
 app.get('/Home', async (req, res) => {
     /* renders the home page */
     try {
-    const { books, error } = await getAllBooks();
+    const result = await getAllBooks();
+const books = result.success ? result.books : [];
+const errorMessage = result.success ? null : result.message;
 
-    res.render("index", {
-      first_name: '',  // no user yet
-      surname: '',
-      userId: null,
-      books,
-      activePage: "home",
-      errorMessage: error  // Pass error message to view
-    });
+res.render("index", {
+  first_name: '',
+  surname: '',
+  userId: null,
+  books,
+  activePage: "home",
+  errorMessage
+});
 
   } catch (error) {
     console.error('Unexpected error in GET / route:', error.stack);
     res.status(500).send('Internal Server Error');
   }
 });
+
 
 app.get('/addBook', async (req, res) => {
     /* Renders the new book form page */
@@ -346,6 +358,12 @@ app.post('/delete', async (req, res) => {
     console.error('Error deleting book:', error.stack);
     res.status(500).send('Internal Server Error');
   }
+});
+
+// Catch-all for unmatched routes (404)
+app.use((req, res, next) => {
+  console.log(`🚨 Route not matched: ${req.method} ${req.url}`);
+  res.status(404).send('404 Not Found');
 });
 
 app.listen(3000, () => {

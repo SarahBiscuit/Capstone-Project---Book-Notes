@@ -277,17 +277,41 @@ app.get('/sortByRating', async (req, res) => {
 })
 
 app.post('/edit', async (req, res) => {
-    /* Allows user to edit book details */
-    try {
-        const { book_id, title, author, year_i_read_it, my_rating, guidance_notes, first_name, surname } = req.body;
-        await editBook({ book_id, title, author, year_i_read_it, my_rating, guidance_notes, first_name, surname });
-        const books = await getBooksByUser({ first_name, surname });
-        res.render('index', { books, first_name, surname, userId: user.id, activePage: 'home' });
-        } catch (error) {
-            console.error('Error editing book:', error.stack);
-            res.status(500).send('Internal Server Error');
-        }
-})
+  try {
+    const { book_id, title, author, year_i_read_it, my_rating, guidance_notes, first_name, surname } = req.body;
+
+    // Attempt to edit the book
+    await editBook({ book_id, title, author, year_i_read_it, my_rating, guidance_notes, first_name, surname });
+
+    // Get updated books for the user
+    const result = await getBooksByUser({ first_name, surname });
+    const books = result.success ? result.books : [];
+    const errorMessage = result.success ? null : result.message;
+
+    // Get user info to retrieve userId
+    const user = await getUser({ first_name, surname });
+
+    res.render('index', {
+      books,
+      first_name,
+      surname,
+      userId: user ? user.id : null,
+      activePage: 'home',
+      errorMessage
+    });
+
+  } catch (error) {
+    console.error('Error editing book:', error.stack);
+    res.status(500).render('index', {
+      books: [],
+      first_name: req.body.first_name || null,
+      surname: req.body.surname || null,
+      userId: null,
+      activePage: 'home',
+      errorMessage: `Internal Server Error: ${error.message}`
+    });
+  }
+});
 
 app.post('/delete', async (req, res) => {
   try {

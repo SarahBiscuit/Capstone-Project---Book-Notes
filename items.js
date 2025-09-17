@@ -343,7 +343,7 @@ export async function sortByRating({ first_name, surname }) {
 
 /* 9.  Function to edit a book item */
 export async function editBook({
-  bookId, // ID from 'books' table
+  book_id, // ID from 'books' table
   title,
   author,
   year_i_read_it,
@@ -401,7 +401,7 @@ export async function editBook({
         year_i_read_it,
         my_rating,
         guidance_notes,
-        bookId,
+        book_id,
         user.id
       ]);
 
@@ -426,7 +426,7 @@ export async function editBook({
         year_i_read_it,
         my_rating,
         guidance_notes,
-        bookId,
+        book_id,
         user.id
       ]);
     }

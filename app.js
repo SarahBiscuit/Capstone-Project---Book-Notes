@@ -1,6 +1,7 @@
 //Main entry point for the application
 
 import express from "express";
+import methodOverride from 'method-override';
 
 import { addNewBook, addNewUser, getAllBooks, getBooksByUser, getAllUsers, getUser, sortByYearRead, sortByRating, editBook, deleteItem, getUserById } from './items.js';
 
@@ -8,6 +9,8 @@ const app = express();
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+// Method Override middleware (important: add this BEFORE your routes)
+app.use(methodOverride('_method'));
 
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
@@ -313,9 +316,12 @@ app.post('/edit', async (req, res) => {
   }
 });
 
-app.post('/delete', async (req, res) => {
+app.delete('/books/:book_id', async (req, res) => {
   try {
-    const { book_id, user_id } = req.body;
+    console.log('req.params.book_id:', req.params.book_id);
+    console.log('req.body.user_id:', req.body.user_id);
+    const book_id = parseInt(req.params.book_id, 10);
+    const user_id = parseInt(req.body.user_id, 10);
 
     const userResult = await getUserById(user_id);
 
@@ -329,9 +335,11 @@ app.post('/delete', async (req, res) => {
     await deleteItem(book_id, first_name, surname);
 
     // Fetch updated books list for the user
-    const books = await getBooksByUser({ first_name, surname });
+    const result = await getBooksByUser({ first_name, surname });
+    const books = result.success ? result.books : [];
+    const errorMessage = result.success ? null : result.message;
 
-    res.render('index', { books, first_name, surname, userId: user.id, activePage: 'home' });
+    res.render('index', { books, first_name, surname, userId: user_id, activePage: 'home', errorMessage });
 
   } catch (error) {
     console.error('Error deleting book:', error.stack);

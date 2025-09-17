@@ -318,28 +318,25 @@ app.post('/edit', async (req, res) => {
 
 app.delete('/books/:book_id', async (req, res) => {
   try {
-    console.log('req.params.book_id:', req.params.book_id);
-    console.log('req.body.user_id:', req.body.user_id);
     const book_id = parseInt(req.params.book_id, 10);
-    const user_id = parseInt(req.body.user_id, 10);
+    const { first_name, surname } = req.body;
 
-    const userResult = await getUserById(user_id);
+    if (!first_name || !surname) {
+      return res.status(400).send('Missing user info');
+    }
 
-    if (!userResult) {
+    const user = await getUser({ first_name, surname });
+    if (!user) {
       return res.status(404).send('User not found');
     }
 
-    const { first_name, surname } = userResult;
-
-    // Call deleteItem with correct parameters
     await deleteItem(book_id, first_name, surname);
 
-    // Fetch updated books list for the user
     const result = await getBooksByUser({ first_name, surname });
     const books = result.success ? result.books : [];
     const errorMessage = result.success ? null : result.message;
 
-    res.render('index', { books, first_name, surname, userId: user_id, activePage: 'home', errorMessage });
+    res.render('index', { books, first_name, surname, userId: user.id, activePage: 'home', errorMessage });
 
   } catch (error) {
     console.error('Error deleting book:', error.stack);

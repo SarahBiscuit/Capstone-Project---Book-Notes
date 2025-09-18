@@ -41,13 +41,13 @@
 
 <% /* Sort By Rating */ %>
            <form action="/sortByRating" method="GET" style="display:inline;">
-            <input type="hidden" name="userId" value="<%= userId %>">
+            <input type="hidden" name="user_id" value="<%= user_id %>">
             <button type="submit" class="btn btn-primary">Sort By Rating</button>
            </form>
 
 <% /* Sort By Year Read */ %>
            <form action="/sortByYear" method="GET" style="display:inline;">
-            <input type="hidden" name="userId" value="<%= userId %>">
+            <input type="hidden" name="user_id" value="<%= user_id %>">
             <button type="submit" class="btn btn-primary">Sort By Year the User Read it in</button>
            </form>
 
@@ -113,13 +113,9 @@
           </div>
 
           <div class="mb-3">
-            <label for="first_name_<%= book.user_id %>" class="form-label">User First Name</label>
-            <input type="text" name="first_name" id="first_name_<%= book.user_id %>" class="form-control" value="<%= first_name %>" />
-          </div>
-
-          <div class="mb-3">
-            <label for="surname_<%= book.user_id %>" class="form-label">User Surname</label>
-            <input type="text" name="surname" id="surname_<%= book.user_id %>" class="form-control" value="<%= surname %>" />
+            <input type="hidden" name="user_id" value="<%= user_id %>" />
+            <input type="hidden" name="first_name" value="<%= first_name %>" />
+            <input type="hidden" name="surname" value="<%= surname %>" />
           </div>
 
         </div>
@@ -136,6 +132,7 @@
           <form action="/books/<%= book.book_id %>?_method=DELETE" method="POST" style="display:inline;">
             <input type="hidden" name="first_name" value="<%= first_name %>"> 
             <input type="hidden" name="surname" value="<%= surname %>">
+            <input type="hidden" name="user_id" value="<%= user_id %>" />
             <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this book?');">Delete</button>
           </form>
 

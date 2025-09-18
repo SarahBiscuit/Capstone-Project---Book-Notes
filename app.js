@@ -281,24 +281,45 @@ app.get('/sortByRating', async (req, res) => {
 
 app.post('/edit', async (req, res) => {
   try {
-    const { book_id, title, author, year_i_read_it, my_rating, guidance_notes, first_name, surname } = req.body;
+    const {
+      book_id,
+      title,
+      author,
+      year_i_read_it,
+      my_rating,
+      guidance_notes,
+      first_name,
+      surname,
+      user_id // ✅ extract it here
+    } = req.body;
 
-    // Attempt to edit the book
-    await editBook({ book_id, title, author, year_i_read_it, my_rating, guidance_notes, first_name, surname });
+    if (!user_id) {
+      throw new Error("Missing user_id");
+    }
 
-    // Get updated books for the user
-    const result = await getBooksByUser({ first_name, surname });
+    // ✅ Pass user_id directly
+    await editBook({
+      book_id,
+      title,
+      author,
+      year_i_read_it,
+      my_rating,
+      guidance_notes,
+      user_id
+    });
+
+    // You can skip getUser() if you're using user_id
+    const user = await getUserById(user_id); // Or wherever you're storing your user data
+
+    const result = await getBooksByUser({ first_name: user.first_name, surname: user.surname });
     const books = result.success ? result.books : [];
     const errorMessage = result.success ? null : result.message;
 
-    // Get user info to retrieve userId
-    const user = await getUser({ first_name, surname });
-
     res.render('index', {
       books,
-      first_name,
-      surname,
-      userId: user ? user.id : null,
+      first_name: user.first_name,
+      surname: user.surname,
+      userId: user_id,
       activePage: 'home',
       errorMessage
     });
@@ -309,7 +330,7 @@ app.post('/edit', async (req, res) => {
       books: [],
       first_name: req.body.first_name || null,
       surname: req.body.surname || null,
-      userId: null,
+      userId: req.body.user_id || null,
       activePage: 'home',
       errorMessage: `Internal Server Error: ${error.message}`
     });

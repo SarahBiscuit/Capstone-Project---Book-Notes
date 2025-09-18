@@ -366,25 +366,28 @@ export async function editBook({
 
     // If both title and author are provided, we're updating the book reference
     if (title && author) {
-      // Check if that title/author already exists
-      const checkQuery = `
-        SELECT id FROM titlesAuthors WHERE title ILIKE $1 AND author ILIKE $2
-      `;
-      const result = await client.query(checkQuery, [title, author]);
+  const checkQuery = `
+    SELECT id FROM titlesAuthors
+    WHERE TRIM(title) ILIKE TRIM($1)
+    AND TRIM(author) ILIKE TRIM($2)
+  `;
 
-      if (result.rowCount > 0) {
-        // Reuse the existing title-author ID
-        newTitlesAuthorsId = result.rows[0].id;
-      } else {
-        // Insert a new title-author pair
-        const insertQuery = `
-          INSERT INTO titlesAuthors (title, author)
-          VALUES ($1, $2)
-          RETURNING id
-        `;
-        const insertResult = await client.query(insertQuery, [title, author]);
-        newTitlesAuthorsId = insertResult.rows[0].id;
-      }
+  const titleTrimmed = title.trim();
+  const authorTrimmed = author.trim();
+
+  const result = await client.query(checkQuery, [titleTrimmed, authorTrimmed]);
+
+  if (result.rowCount > 0) {
+    newTitlesAuthorsId = result.rows[0].id;
+  } else {
+    const insertQuery = `
+      INSERT INTO titlesAuthors (title, author)
+      VALUES ($1, $2)
+      RETURNING id
+    `;
+    const insertResult = await client.query(insertQuery, [titleTrimmed, authorTrimmed]);
+    newTitlesAuthorsId = insertResult.rows[0].id;
+  }
 
       /* Update the books table to reference the new title-author*/
       const updateBooksQuery = `

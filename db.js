@@ -11,7 +11,7 @@ const db = new Pool({
   database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT,
-  max: 10, // optional: max connections in the pool
+  max: 30, // optional: max connections in the pool
 });
 
 export default db;

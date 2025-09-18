@@ -33,7 +33,7 @@ export async function addNewBook({
       };
     }
 
-    const userId = userResult.rows[0].id;
+    const user_id = userResult.rows[0].id;
 
     // Normalize title and author
     const cleanedTitle = title.trim().toUpperCase();
@@ -48,7 +48,7 @@ export async function addNewBook({
         LIMIT 1
       );
     `;
-    const userBookMatch = await db.query(userBookMatchQuery, [userId, cleanedTitle, cleanedAuthor]);
+    const userBookMatch = await db.query(userBookMatchQuery, [user_id, cleanedTitle, cleanedAuthor]);
 
     if (userBookMatch.rowCount > 0) {
       return {
@@ -74,7 +74,7 @@ export async function addNewBook({
       ON CONFLICT DO NOTHING
       RETURNING id;
     `;
-    await db.query(findOrInsertUserReadsQuery, [userId, titleAuthorId]);
+    await db.query(findOrInsertUserReadsQuery, [user_id, titleAuthorId]);
 
     // Normalize guidance notes
     const cleanedNotes = guidance_notes.trim();
@@ -86,7 +86,7 @@ export async function addNewBook({
       RETURNING book_id;
     `;
     const insertBookResult = await db.query(insertBookQuery, [
-      userId,
+      user_id,
       titleAuthorId,
       year_i_read_it,
       my_rating,
@@ -137,7 +137,7 @@ export async function addNewUser({ first_name, surname }) {
 
     return {
       success: true,
-      userId: insertResult.rows[0].id
+      user_id: insertResult.rows[0].id
     };
 
   } catch (error) {
@@ -148,7 +148,6 @@ export async function addNewUser({ first_name, surname }) {
     };
   }
 }
-
 
 /* 3.  Function to get all book items */
 export async function getAllBooks() {
@@ -451,9 +450,9 @@ export async function deleteItem(book_id, first_name, surname) {
   if (!user) {
     throw new Error('User not found');
   }
-  const userId = user.id;
+  const user_id = user.id;
   const query = `DELETE FROM books WHERE book_id = $1 AND user_id = $2`;
-  await db.query(query, [book_id, userId]);
+  await db.query(query, [book_id, user_id]);
 }
 
 // 11. Function to get user by id

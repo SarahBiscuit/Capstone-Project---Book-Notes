@@ -15,7 +15,6 @@ app.use(methodOverride('_method'));
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
 
-
 /* Render blank index.js page */
 app.get('/', async (req, res) => {
   try {
@@ -26,7 +25,7 @@ const errorMessage = result.success ? null : result.message;
 res.render("index", {
   first_name: '',
   surname: '',
-  userId: null,
+  user_id: null,
   books,
   activePage: "home",
   errorMessage
@@ -37,7 +36,6 @@ res.render("index", {
     res.status(500).send('Internal Server Error');
   }
 });
-
 
 app.get('/searchUser', async (req, res) => {
   try {
@@ -69,7 +67,7 @@ app.get('/searchUser', async (req, res) => {
     res.render("index", {
       first_name: user.first_name,
       surname: user.surname,
-      userId: user.id,
+      user_id: user.id,
       books,
       activePage: "home",
       errorMessage
@@ -108,7 +106,7 @@ app.post('/addBook', async (req, res) => {
         books,
         first_name,
         surname,
-        userId: user ? user.id : null,
+        user_id: user ? user.id : null,
         activePage: 'home',
         errorMessage
       });
@@ -123,7 +121,7 @@ app.post('/addBook', async (req, res) => {
       books,
       first_name,
       surname,
-      userId: user ? user.id : null,
+      user_id: user ? user.id : null,
       activePage: 'home',
       errorMessage
     });
@@ -135,13 +133,12 @@ app.post('/addBook', async (req, res) => {
       books: [],
       first_name: req.body.first_name || null,
       surname: req.body.surname || null,
-      userId: user ? user.id : null,
+      user_id: user ? user.id : null,
       errorMessage: `An unexpected error occurred: ${error.message}`,
       activePage: 'home'
     });
   }
 });
-
 
 app.post('/addUser', async (req, res) => {
   try {
@@ -151,7 +148,7 @@ app.post('/addUser', async (req, res) => {
 
     let books = [];
     let errorMessages = [];
-    let userId = null;
+    let user_id = null;
 
     if (!result.success) {
       // User creation failed
@@ -171,7 +168,7 @@ app.post('/addUser', async (req, res) => {
 
     } else {
       // User creation succeeded
-      userId = result.userId;
+      user_id = result.user_id;
 
       try {
         const booksResult = await getBooksByUser({ first_name, surname });
@@ -192,7 +189,7 @@ app.post('/addUser', async (req, res) => {
       books,
       first_name,
       surname,
-      userId,
+      user_id,
       activePage: 'home',
       errorMessage
     });
@@ -203,13 +200,12 @@ app.post('/addUser', async (req, res) => {
       books: [],
       first_name: req.body.first_name || null,
       surname: req.body.surname || null,
-      userId: null,
+      user_id: null,
       activePage: 'home',
       errorMessage: `Internal Server Error: ${error.message}`
     });
   }
 });
-
 
 app.get('/addUser', async (req, res) => {
     /* Renders the new user form page */
@@ -231,7 +227,7 @@ const errorMessage = result.success ? null : result.message;
 res.render("index", {
   first_name: '',
   surname: '',
-  userId: null,
+  user_id: null,
   books,
   activePage: "home",
   errorMessage
@@ -243,7 +239,6 @@ res.render("index", {
   }
 });
 
-
 app.get('/addBook', async (req, res) => {
     /* Renders the new book form page */
     try { 
@@ -254,13 +249,12 @@ app.get('/addBook', async (req, res) => {
     }
 })
 
-
 app.get('/sortByYear', async (req, res) => {
     /* Sorts books by year read */
     try {
         const {first_name, surname} = req.query;
         const books = await sortByYearRead({ first_name, surname });
-        res.render('index', { books, first_name, surname, userId: user.id, activePage: 'home' });
+        res.render('index', { books, first_name, surname, user_id: user.id, activePage: 'home' });
     } catch (error) {
         console.error('Error sorting books by year:', error.stack);
         res.status(500).send('Internal Server Error');
@@ -272,7 +266,7 @@ app.get('/sortByRating', async (req, res) => {
     try {
         const {first_name, surname} = req.query;
         const books = await sortByRating({ first_name, surname });
-        res.render('index', { books, first_name, surname, userId: user.id, activePage: 'home' });
+        res.render('index', { books, first_name, surname, user_id: user.id, activePage: 'home' });
     } catch (error) {
         console.error('Error sorting books by rating:', error.stack);
         res.status(500).send('Internal Server Error');
@@ -319,7 +313,7 @@ app.post('/edit', async (req, res) => {
       books,
       first_name: user.first_name,
       surname: user.surname,
-      userId: user_id,
+      user_id: user_id,
       activePage: 'home',
       errorMessage
     });
@@ -330,7 +324,7 @@ app.post('/edit', async (req, res) => {
       books: [],
       first_name: req.body.first_name || null,
       surname: req.body.surname || null,
-      userId: req.body.user_id || null,
+      user_id: req.body.user_id || null,
       activePage: 'home',
       errorMessage: `Internal Server Error: ${error.message}`
     });
@@ -357,7 +351,7 @@ app.delete('/books/:book_id', async (req, res) => {
     const books = result.success ? result.books : [];
     const errorMessage = result.success ? null : result.message;
 
-    res.render('index', { books, first_name, surname, userId: user.id, activePage: 'home', errorMessage });
+    res.render('index', { books, first_name, surname, user_id: user.id, activePage: 'home', errorMessage });
 
   } catch (error) {
     console.error('Error deleting book:', error.stack);

@@ -342,18 +342,16 @@ export async function sortByRating({ first_name, surname }) {
 
 /* 9.  Function to edit a book item */
 export async function editBook({
-  book_id, // ID from 'books' table
+  book_id,         // ID from 'books' table
   title,
   author,
   year_i_read_it,
   my_rating,
   guidance_notes,
-  first_name,
-  surname
+  user_id          // ✅ Now passed directly instead of name
 }) {
-  const user = await getUser({ first_name, surname });
-  if (!user) {
-    throw new Error('User not found');
+  if (!user_id) {
+    throw new Error('Missing user ID');
   }
 
   const client = await db.connect();
@@ -365,30 +363,30 @@ export async function editBook({
 
     // If both title and author are provided, we're updating the book reference
     if (title && author) {
-  const checkQuery = `
-    SELECT id FROM titlesAuthors
-    WHERE TRIM(title) ILIKE TRIM($1)
-    AND TRIM(author) ILIKE TRIM($2)
-  `;
+      const checkQuery = `
+        SELECT id FROM titlesAuthors
+        WHERE TRIM(title) ILIKE TRIM($1)
+          AND TRIM(author) ILIKE TRIM($2)
+      `;
 
-  const titleTrimmed = title.trim();
-  const authorTrimmed = author.trim();
+      const titleTrimmed = title.trim();
+      const authorTrimmed = author.trim();
 
-  const result = await client.query(checkQuery, [titleTrimmed, authorTrimmed]);
+      const result = await client.query(checkQuery, [titleTrimmed, authorTrimmed]);
 
-  if (result.rowCount > 0) {
-    newTitlesAuthorsId = result.rows[0].id;
-  } else {
-    const insertQuery = `
-      INSERT INTO titlesAuthors (title, author)
-      VALUES ($1, $2)
-      RETURNING id
-    `;
-    const insertResult = await client.query(insertQuery, [titleTrimmed, authorTrimmed]);
-    newTitlesAuthorsId = insertResult.rows[0].id;
-  }
+      if (result.rowCount > 0) {
+        newTitlesAuthorsId = result.rows[0].id;
+      } else {
+        const insertQuery = `
+          INSERT INTO titlesAuthors (title, author)
+          VALUES ($1, $2)
+          RETURNING id
+        `;
+        const insertResult = await client.query(insertQuery, [titleTrimmed, authorTrimmed]);
+        newTitlesAuthorsId = insertResult.rows[0].id;
+      }
 
-      /* Update the books table to reference the new title-author*/
+      // ✅ Update the books table to reference the new title-author ID
       const updateBooksQuery = `
         UPDATE books
         SET
@@ -398,44 +396,47 @@ export async function editBook({
           guidance_notes = COALESCE($4, guidance_notes)
         WHERE book_id = $5 AND user_id = $6
       `;
+
       await client.query(updateBooksQuery, [
         newTitlesAuthorsId,
         year_i_read_it,
         my_rating,
         guidance_notes,
         book_id,
-        user.id
+        user_id
       ]);
 
-      // Ensure entry exists in userReads
+      // ✅ Ensure entry exists in userReads
       const insertUserReadsQuery = `
         INSERT INTO userReads (user_id, book_id)
         VALUES ($1, $2)
         ON CONFLICT (user_id, book_id) DO NOTHING
       `;
-      await client.query(insertUserReadsQuery, [user.id, newTitlesAuthorsId]);
+      await client.query(insertUserReadsQuery, [user_id, newTitlesAuthorsId]);
     } else {
-      // If no title/author change, just update other fields
+      // ✅ No title/author change, just update the book record
       const updateOnlyBookDetailsQuery = `
         UPDATE books
         SET
-          year_I_read_it = COALESCE($1, year_i_read_it),
+          year_i_read_it = COALESCE($1, year_i_read_it),
           my_rating = COALESCE($2, my_rating),
           guidance_notes = COALESCE($3, guidance_notes)
         WHERE book_id = $4 AND user_id = $5
       `;
+
       await client.query(updateOnlyBookDetailsQuery, [
         year_i_read_it,
         my_rating,
         guidance_notes,
         book_id,
-        user.id
+        user_id
       ]);
     }
 
     await client.query('COMMIT');
   } catch (error) {
     await client.query('ROLLBACK');
+    console.error('editBook failed:', error);
     throw error;
   } finally {
     client.release();
@@ -444,14 +445,16 @@ export async function editBook({
 
 /* 10.  Function to delete a book item */
 // Function to delete an item by id
-export async function deleteItem(book_id, first_name, surname) {
-  const user = await getUser({ first_name, surname });
-  // Get user id for the above
-  if (!user) {
-    throw new Error('User not found');
+export async function deleteItem(book_id, user_id) {
+  if (!user_id) {
+    throw new Error('Missing user ID');
   }
-  const user_id = user.id;
-  const query = `DELETE FROM books WHERE book_id = $1 AND user_id = $2`;
+
+  const query = `
+    DELETE FROM books 
+    WHERE book_id = $1 AND user_id = $2
+  `;
+
   await db.query(query, [book_id, user_id]);
 }
 

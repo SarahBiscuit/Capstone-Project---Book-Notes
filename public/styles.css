@@ -2,6 +2,17 @@
     background-color: #ff7518;
   }
 
+.mainHeader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  background-image: url('/images/Bookshelf 1.jpg');
+  background-size: cover;
+  background-position: center;
+  padding: 5px;
+}
+
 .bookNotesHeader {
   background-color: #ff9913;
   justify-content: center;

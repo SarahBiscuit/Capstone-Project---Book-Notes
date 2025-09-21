@@ -25,20 +25,12 @@
 
 <div class="headerBoxes">
 <% /* Header bar with user name in */ %>
-    <div class="container userheader">
+    <div class="container bookNotesHeader col-lg-6 col-md-8 col-12 mb-4">
         <h2>
             <%= (first_name && surname) ? `User Name - ${first_name} ${surname}` : 'Select a user to view their book recommendations' %>
         </h2>
     </div>
 
-</div>
-
-<% /* Sub Header */ %>
-    <div class="container bookNotesSubHeader">
-        <h3>
-            <span><b>Please see my book recommendations below</b></span>
-        </h3>
-    </div>
 </div>
 
 <% /* Error Message Display */ %>

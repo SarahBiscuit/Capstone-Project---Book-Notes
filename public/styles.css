@@ -25,6 +25,11 @@
   font-size: 2.5rem;
 }
 
+.bookNotesHeader h2 {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
 .bookNotesSubHeader {
   background-color: #ff7518;
   justify-content: center;
@@ -47,6 +52,11 @@
   .bookNotesSubHeader h3 {
     font-size: 1rem;
   }
+
+  .bookNotesHeader h2 {
+  font-size: 1.3rem;
+  font-weight: bold;
+}
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
@@ -55,6 +65,11 @@
   }
 
   .bookNotesSubHeader h3 {
-    font-size: 1.2rem;
+    font-size: 1rem;
   }
+
+  .bookNotesHeader h2 {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
 }

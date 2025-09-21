@@ -2,20 +2,48 @@
     background-color: #ff7518;
   }
 
-/*#headerBoxesHomepage {
-Code below is commented out because it isn't currently working.  It is supposed to set a background image to cover the whole width and heigh for just the header boxes on the index.ejs page (see my design on Canva).
-  /*position: fixed;  /* or absolute if preferred */
-  top: 0;
-  left: 0;
-  height: 100vh;
-  width: 100vw;
-  background-image: url('../images/bookshelf 1.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  margin: 0;
-  padding: 0;
-  z-index: -1; /* optional: push background behind content */
+.bookNotesHeader {
+  background-color: #ff9913;
+  justify-content: center;
+  text-align: center;
+  padding: 5px;
+  border-radius: 10px;
+}
 
-}*/
-  
+.bookNotesHeader h1 {
+  font-size: 2.5rem;
+}
+
+.bookNotesSubHeader {
+  background-color: #ff7518;
+  justify-content: center;
+  text-align: center;
+  padding: 5px;
+  border-radius: 10px;
+}
+
+.bookNotesSubHeader h3 {
+  font-size: 1.3rem;
+}
+
+
+
+@media (max-width: 768px) {
+  .bookNotesHeader h1{
+    font-size: 2rem;
+  }
+
+  .bookNotesSubHeader h3 {
+    font-size: 1rem;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .bookNotesHeader h1{
+    font-size: 2.5rem;
+  }
+
+  .bookNotesSubHeader h3 {
+    font-size: 1.2rem;
+  }
+}

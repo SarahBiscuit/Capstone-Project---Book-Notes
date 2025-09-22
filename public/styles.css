@@ -64,6 +64,35 @@ body button {
   font-weight: bold !important;
 }
 
+.modal-title {
+  font-weight: bold !important;
+  color: black !important;
+}
+
+.modal-header {
+  background-color: #ff7518;
+}
+
+.modal-body input {
+  border-width: 2px !important;
+  border-style: solid !important;
+  border-color: #ff7518 !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+
+.modal-body textarea {
+  border-width: 2px !important;
+  border-style: solid !important;
+  border-color: #ff7518 !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+
+.modal-body label {
+  font-weight: bold !important;
+  color: black !important;
+}
 
 
 @media (max-width: 768px) {

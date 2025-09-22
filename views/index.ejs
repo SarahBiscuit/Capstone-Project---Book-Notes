@@ -43,13 +43,13 @@
 <% /* Sort By Rating */ %>
            <form action="/sortByRating" method="GET" style="display:inline;">
             <input type="hidden" name="user_id" value="<%= user_id %>">
-            <button type="submit" class="btn btn-primary">Sort By Rating</button>
+            <button type="submit" class="btn btn-danger">Sort By Rating</button>
            </form>
 
 <% /* Sort By Year Read */ %>
            <form action="/sortByYear" method="GET" style="display:inline;">
             <input type="hidden" name="user_id" value="<%= user_id %>">
-            <button type="submit" class="btn btn-primary">Sort By Year the User Read it in</button>
+            <button type="submit" class="btn btn-danger">Sort By Year the User Read it in</button>
            </form>
 
 <% /* For each function to generate bootstrap cards for each book.  Want to rewrite it as jquery. */ %>
@@ -70,7 +70,7 @@
           
 <% /* Edit Form in Bootstrap modal */ %>
       <% /* Edit Button */ %>
-<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#editModal_<%= book.book_id %>">
+<button type="button" class="btn btn-warning" data-toggle="modal" data-target="#editModal_<%= book.book_id %>">
   Edit 
 </button>
 <% /* Modal */ %>

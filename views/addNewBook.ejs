@@ -1,24 +1,33 @@
 <%- include("partials/header.ejs") %>
 
+</br>
+</br>
+
 <div class="container headerBoxes">
+<div class="container mainHeader">
 <%# Main header %>
-    <div class="container bookNotesHeader">
+</br>
+    <div class="container bookNotesHeader col-lg-6 col-md-8 col-12 mb-4">
         <h1><span><b>Add New Book</b></span></h1>
     </div>
 
 <%# Sub Header %>
-    <div class="container bookNotesSubHeader">
+    <div class="container bookNotesSubHeader col-lg-10 col-md-10 col-12 mb-4">
         <h3>
             <p><span><b>Use this form to add a new book recommendation.</b></span></p>
             <p><span><b>Happy reading!</b></span></p>
         </h3>
     </div>
 </div>
+</div>
 
-<div class="container-fluid addNewUserForm">
+</br>
+</br>
+
+<div class="container-fluid addNewBookForm col-lg-6 col-md-8 col-12 mb-4">
     <%# Want to add a form in to add a new book, and have an image floating to the right of the form (to change to below it on smaller screens) %>
     <div class="row">
-        <div class="col-md-6 col-sm-12">
+        <div>
             <form action="/addBook" method="POST">
                 <div class="form-group mb-3">
                     <label for="userFirstName">User First Name: </label>
@@ -52,14 +61,10 @@
                 </div>
 
             <!-- Submit Button -->
-                <button type="submit" class="btn btn-primary">Submit</button>
+                <button type="submit" class="btn btn-danger">Submit</button>
             </form>
         </div>
 
-        <!-- Book Image (floats right on larger screens, stacks on smaller) -->
-        <div class="col-md-6 col-sm-12 text-center mt-3">
-            <img src="#" alt="Image of a book" class="img-fluid" style="max-width: 300px; max-height: 300px;" />
-        </div>
     </div>
 </div>
 

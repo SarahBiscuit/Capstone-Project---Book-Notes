@@ -94,6 +94,79 @@ body button {
   color: black !important;
 }
 
+.addNewUserForm {
+  border-width: 2px !important;
+  border-style: solid !important;
+  border-color: #ff7518 !important;
+  border-radius: 10px !important;
+  box-shadow: none !important; 
+  justify-items: center;
+  align-items: center;
+  padding: 5px;
+}
+
+.addNewBookForm {
+  border-width: 2px !important;
+  border-style: solid !important;
+  border-color: #ff7518 !important;
+  border-radius: 10px !important;
+  box-shadow: none !important; 
+  justify-items: center;
+  align-items: center;
+  padding: 5px;
+}
+
+.addNewUserForm input {
+  border-width: 2px !important;
+  border-style: solid !important;
+  border-color: #ff7518 !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+
+.addNewBookForm input {
+  border-width: 2px !important;
+  border-style: solid !important;
+  border-color: #ff7518 !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+
+.addNewUserForm textarea {
+  border-width: 2px !important;
+  border-style: solid !important;
+  border-color: #ff7518 !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+
+.addNewBookForm textarea {
+  border-width: 2px !important;
+  border-style: solid !important;
+  border-color: #ff7518 !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+
+.addNewUserForm label {
+  font-weight: bold !important;
+  color: black !important;
+}
+
+.addNewBookForm label {
+  font-weight: bold !important;
+  color: black !important;
+}
+
+.addNewBookForm #my_rating {
+  border-width: 2px !important;
+  border-style: solid !important;
+  border-color: #ff7518 !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+
+
 
 @media (max-width: 768px) {
 

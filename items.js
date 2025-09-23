@@ -181,7 +181,7 @@ export async function getAllBooks() {
 /* 4.  Function to get all book items for a specific user */
 export async function getBooksByUser({ first_name, surname }) {
   const query = `
-    SELECT b.book_id, ta.author, ta.title, b.year_i_read_it, b.my_rating, b.guidance_notes, u.surname, u.first_name
+    SELECT b.book_id, ta.author, ta.title, b.year_i_read_it, b.my_rating, b.guidance_notes, b.user_id, u.surname, u.first_name
     FROM books b
     JOIN users u on b.user_id = u.id
     JOIN titlesAuthors ta on b.book_id = ta.id

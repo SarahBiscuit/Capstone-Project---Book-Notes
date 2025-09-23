@@ -305,7 +305,7 @@ app.post('/edit', async (req, res) => {
     // You can skip getUser() if you're using user_id
     const user = await getUserById(user_id); // Or wherever you're storing your user data
 
-    const result = await getBooksByUser({ first_name: user.first_name, surname: user.surname });
+    const result = await getBooksByUser({ first_name: user.first_name, surname: user.surname, user_id });
     const books = result.success ? result.books : [];
     const errorMessage = result.success ? null : result.message;
 
@@ -313,7 +313,7 @@ app.post('/edit', async (req, res) => {
       books,
       first_name: user.first_name,
       surname: user.surname,
-      user_id: user_id,
+      user_id: user.id,
       activePage: 'home',
       errorMessage
     });

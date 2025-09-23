@@ -152,7 +152,7 @@ export async function addNewUser({ first_name, surname }) {
 /* 3.  Function to get all book items */
 export async function getAllBooks() {
   const query = `
-    SELECT b.book_id, ta.author, ta.title, b.year_i_read_it, b.my_rating, b.guidance_notes, u.surname, u.first_name
+    SELECT b.book_id, ta.author, ta.title, b.year_i_read_it, b.my_rating, b.guidance_notes, u.surname, u.first_name, b.user_id
     FROM books b
     JOIN users u on b.user_id = u.id
     JOIN titlesAuthors ta on b.book_id = ta.id
@@ -253,7 +253,7 @@ export async function sortByYearRead({ first_name, surname }) {
   // no user found - return all books sorted by year read
   if (!first_name || !surname) {
     const query = `
-      SELECT b.book_id, ta.title, ta.author, b.year_i_read_it, b.my_rating, b.guidance_notes
+      SELECT b.book_id, ta.title, ta.author, b.year_i_read_it, b.my_rating, b.guidance_notes, b.user_id
       FROM books b
       JOIN users u ON b.user_id = u.id
       JOIN titlesAuthors ta ON b.book_id = ta.id
@@ -277,7 +277,7 @@ export async function sortByYearRead({ first_name, surname }) {
   }
 
   const query = `
-    SELECT b.book_id, ta.title, ta.author, b.year_i_read_it, b.my_rating, b.guidance_notes
+    SELECT b.book_id, ta.title, ta.author, b.year_i_read_it, b.my_rating, b.guidance_notes, b.user_id
     FROM books b
     JOIN users u ON b.user_id = u.id
     JOIN titlesAuthors ta ON b.book_id = ta.id
@@ -299,7 +299,7 @@ export async function sortByRating({ first_name, surname }) {
   // no user found - return all books sorted by rating
   if (!first_name || !surname) {
     const query = `
-      SELECT b.book_id, ta.title, ta.author, b.year_i_read_it, b.my_rating, b.guidance_notes
+      SELECT b.book_id, ta.title, ta.author, b.year_i_read_it, b.my_rating, b.guidance_notes, b.user_id
       FROM books b
       JOIN users u ON b.user_id = u.id
       JOIN titlesAuthors ta ON b.book_id = ta.id
@@ -323,7 +323,7 @@ export async function sortByRating({ first_name, surname }) {
   }
 
   const query = `
-    SELECT b.book_id, ta.title, ta.author, b.year_i_read_it, b.my_rating, b.guidance_notes
+    SELECT b.book_id, ta.title, ta.author, b.year_i_read_it, b.my_rating, b.guidance_notes, b.user_id
     FROM books b
     JOIN users u ON b.user_id = u.id
     JOIN titlesAuthors ta ON b.book_id = ta.id

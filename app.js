@@ -358,18 +358,19 @@ app.delete('/books/:book_id', async (req, res) => {
 
     await deleteItem(book_id, user_id);
 
-    const result = await getBooksByUser({ first_name: user.first_name, surname: user.surname });
+    const result = await getAllBooks();
     const books = result.success ? result.books : [];
     const errorMessage = result.success ? null : result.message;
 
-    res.render('index', {
-      books,
-      first_name: user.first_name,
-      surname: user.surname,
-      user_id,
-      activePage: 'home',
-      errorMessage
-    });
+  res.render('index', {
+  books,
+  first_name: '',
+  surname: '',
+  user_id: null,
+  activePage: 'home',
+  errorMessage
+});
+
 
   } catch (error) {
     console.error('Error deleting book:', error.stack);

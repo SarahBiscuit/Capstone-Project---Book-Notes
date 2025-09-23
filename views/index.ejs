@@ -129,6 +129,8 @@
 
 <% /* Delete Form */ %>
           <form action="/books/<%= book.book_id %>?_method=DELETE" method="POST" style="display:inline;">
+            <input type="hidden" name="first_name" value="<%= first_name %>" />
+            <input type="hidden" name="surname" value="<%= surname %>" />
             <input type="hidden" name="user_id" value="<%= book.user_id %>" />
             <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this book?');">Delete</button>
           </form>

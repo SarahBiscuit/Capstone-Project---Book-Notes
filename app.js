@@ -334,30 +334,49 @@ app.post('/edit', async (req, res) => {
 app.delete('/books/:book_id', async (req, res) => {
   try {
     const book_id = parseInt(req.params.book_id, 10);
-    const { first_name, surname } = req.body;
+    const user_id_raw = req.body.user_id;
 
-    if (!first_name || !surname) {
+    if (!user_id_raw) {
       return res.status(400).send('Missing user info');
     }
 
-    const user = await getUser({ first_name, surname });
+    // Parse user_id properly
+    const user_id = typeof user_id_raw === 'string'
+      ? parseInt(user_id_raw, 10)
+      : user_id_raw;
+
+    if (isNaN(user_id)) {
+      return res.status(400).send('Invalid user_id');
+    }
+
+    // getUserById probably expects user_id as a number (not an object)
+    const user = await getUserById(user_id);
+
     if (!user) {
       return res.status(404).send('User not found');
     }
 
-    await deleteItem(book_id, first_name, surname);
+    await deleteItem(book_id, user_id);
 
-    const result = await getBooksByUser({ first_name, surname });
+    const result = await getBooksByUser({ first_name: user.first_name, surname: user.surname });
     const books = result.success ? result.books : [];
     const errorMessage = result.success ? null : result.message;
 
-    res.render('index', { books, first_name, surname, user_id: user.id, activePage: 'home', errorMessage });
+    res.render('index', {
+      books,
+      first_name: user.first_name,
+      surname: user.surname,
+      user_id,
+      activePage: 'home',
+      errorMessage
+    });
 
   } catch (error) {
     console.error('Error deleting book:', error.stack);
     res.status(500).send('Internal Server Error');
   }
 });
+
 
 // Catch-all for unmatched routes (404)
 app.use((req, res, next) => {

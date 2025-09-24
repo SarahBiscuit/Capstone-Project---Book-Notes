@@ -40,14 +40,24 @@ res.render("index", {
 app.get('/searchUser', async (req, res) => {
   try {
     const { first_name, surname } = req.query;
-    const user = await getUser({ first_name, surname });
+    const userResult = await getUser({ first_name, surname });
 
-    if (!user) {
-      return res.status(404).send('User not found');
+  if (!userResult.success) {
+    const allBooksResult = await getAllBooks();
+    const books = allBooksResult.success ? allBooksResult.books : [];
+
+    return res.status(400).render('index', {
+      books,
+      first_name,
+      surname,
+      user_id: null,
+      activePage: 'home',
+      errorMessage: userResult.message
+    });
     }
 
-    let books = [];
-    let errorMessage = null;
+    const user = userResult.user;
+
 
     try {
       const booksResult = await getBooksByUser({ first_name, surname });
@@ -93,24 +103,24 @@ app.post('/addBook', async (req, res) => {
     surname = surname.trim();
 
     // Try to find the user
-    user = await getUser({ first_name, surname });
+    const userResult = await getUser({ first_name, surname });
 
-    if (!user) {
-      // ❌ User not found → get all books
-      const allBooksResult = await getAllBooks(); // ← You must have this function
+    if (!userResult.success) {
+      const allBooksResult = await getAllBooks();
       books = allBooksResult.success ? allBooksResult.books : [];
 
-      errorMessage = "User not found with the provided first name and surname";
-
-      return res.status(400).render('index', {
-        books,
-        first_name,
-        surname,
-        user_id: null,
-        activePage: 'home',
-        errorMessage
-      });
+    return res.status(400).render('index', {
+      books,
+      first_name,
+      surname,
+      user_id: null,
+      activePage: 'home',
+      errorMessage: userResult.message
+    });
     }
+
+    user = userResult.user;
+
 
     // Try to add the book
     const result = await addNewBook({

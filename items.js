@@ -29,7 +29,7 @@ export async function addNewBook({
     if (userResult.rowCount === 0) {
       return {
         success: false,
-        message: 'User not found with the provided first name and surname'
+        message: 'User not found with the provided first name and surname.'
       };
     }
 
@@ -228,7 +228,6 @@ export async function getAllUsers() {
   };
 }
 
-/* 6.  Function to get a specific user */
 export async function getUser({ first_name, surname }) {
   const query = `
     SELECT id, first_name, surname
@@ -239,14 +238,32 @@ export async function getUser({ first_name, surname }) {
     LIMIT 1
   `;
 
-  const result = await db.query(query, [first_name, surname]);
+  try {
+    const result = await db.query(query, [first_name, surname]);
 
-  if (result.rowCount === 0) {
-    return null; // or false, but null is simpler for "not found"
+    if (result.rowCount === 0) {
+      return {
+        success: false,
+        message: 'No user found',
+        user: null
+      };
+    }
+
+    return {
+      success: true,
+      user: result.rows[0]
+    };
+  } catch (error) {
+    console.error('Error in getUser:', error);
+
+    return {
+      success: false,
+      message: 'Database error when fetching user',
+      user: null
+    };
   }
-
-  return result.rows[0];
 }
+
 
 /* 7.  Function to sort all books by year read */
 export async function sortByYearRead({ first_name, surname }) {

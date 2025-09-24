@@ -40,33 +40,39 @@ res.render("index", {
 app.get('/searchUser', async (req, res) => {
   try {
     const { first_name, surname } = req.query;
+
+    // Initialize these before usage
+    let books = [];
+    let errorMessage = null;
+
     const userResult = await getUser({ first_name, surname });
 
-  if (!userResult.success) {
-    const allBooksResult = await getAllBooks();
-    const books = allBooksResult.success ? allBooksResult.books : [];
+    if (!userResult.success) {
+      // User not found — show all books and error
+      const allBooksResult = await getAllBooks();
+      books = allBooksResult.success ? allBooksResult.books : [];
 
-    return res.status(400).render('index', {
-      books,
-      first_name,
-      surname,
-      user_id: null,
-      activePage: 'home',
-      errorMessage: userResult.message
-    });
+      return res.status(400).render('index', {
+        books,
+        first_name,
+        surname,
+        user_id: null,
+        activePage: 'home',
+        errorMessage: userResult.message || 'User not found'
+      });
     }
 
     const user = userResult.user;
 
-
     try {
       const booksResult = await getBooksByUser({ first_name, surname });
+
       if (booksResult.success === false) {
         // No books found but user exists
         errorMessage = booksResult.message || 'No books found for this user';
         books = [];
       } else {
-        books = booksResult.books || booksResult; // Adjust based on your data structure
+        books = booksResult.books || booksResult; // depends on your data structure
       }
     } catch (err) {
       console.warn('Error fetching books:', err.message);
@@ -74,12 +80,12 @@ app.get('/searchUser', async (req, res) => {
       books = [];
     }
 
-    res.render("index", {
+    res.render('index', {
       first_name: user.first_name,
       surname: user.surname,
       user_id: user.id,
       books,
-      activePage: "home",
+      activePage: 'home',
       errorMessage
     });
 
@@ -88,6 +94,7 @@ app.get('/searchUser', async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 });
+
 
 app.post('/addBook', async (req, res) => {
   console.log("🛬 /addBook POST route was triggered");
@@ -296,83 +303,105 @@ app.get('/addBook', async (req, res) => {
 })
 
 app.get('/sortByYear', async (req, res) => {
-    /* Sorts books by year read */
-    try {
-        const {first_name, surname} = req.query;
-        const books = await sortByYearRead({ first_name, surname });
-        res.render('index', { books, first_name, surname, user_id: user.id, activePage: 'home' });
-    } catch (error) {
-        console.error('Error sorting books by year:', error.stack);
-        res.status(500).send('Internal Server Error');
-    }
-})
-
-app.get('/sortByRating', async (req, res) => {
-    /* Sorts books by rating */
-    try {
-        const {first_name, surname} = req.query;
-        const books = await sortByRating({ first_name, surname });
-        res.render('index', { books, first_name, surname, user_id: user.id, activePage: 'home' });
-    } catch (error) {
-        console.error('Error sorting books by rating:', error.stack);
-        res.status(500).send('Internal Server Error');
-    }
-})
-
-app.post('/edit', async (req, res) => {
   try {
-    const {
-      book_id,
-      title,
-      author,
-      year_i_read_it,
-      my_rating,
-      guidance_notes,
-      first_name,
-      surname,
-      user_id // ✅ extract it here
-    } = req.body;
+    const { first_name, surname } = req.query;
 
-    if (!user_id) {
-      throw new Error("Missing user_id");
+    let books = [];
+    let user = null;
+    let user_id = null;
+    let errorMessage = null;
+
+    // Get books (all or by user)
+    try {
+      books = await sortByYearRead({ first_name, surname });
+    } catch (err) {
+      errorMessage = err.message;
     }
 
-    // ✅ Pass user_id directly
-    await editBook({
-      book_id,
-      title,
-      author,
-      year_i_read_it,
-      my_rating,
-      guidance_notes,
-      user_id
-    });
+    // Try to resolve user if names are provided
+    if (first_name && surname) {
+      const userResult = await getUser({ first_name, surname });
 
-    // You can skip getUser() if you're using user_id
-    const user = await getUserById(user_id); // Or wherever you're storing your user data
+      if (userResult.success) {
+        user = userResult.user;
+        user_id = user.id;
+      } else {
+        // fallback to null, no crash
+        errorMessage = userResult.message || errorMessage;
+      }
+    }
 
-    const result = await getBooksByUser({ first_name: user.first_name, surname: user.surname, user_id });
-    const books = result.success ? result.books : [];
-    const errorMessage = result.success ? null : result.message;
-
-    res.render('index', {
+    return res.render('index', {
       books,
-      first_name: user.first_name,
-      surname: user.surname,
-      user_id: user.id,
+      first_name: first_name || '',
+      surname: surname || '',
+      user_id,
       activePage: 'home',
       errorMessage
     });
 
   } catch (error) {
-    console.error('Error editing book:', error.stack);
+    console.error('Error sorting books by year:', error.stack);
     res.status(500).render('index', {
       books: [],
-      first_name: req.body.first_name || null,
-      surname: req.body.surname || null,
-      user_id: req.body.user_id || null,
+      first_name: '',
+      surname: '',
+      user_id: null,
       activePage: 'home',
-      errorMessage: `Internal Server Error: ${error.message}`
+      errorMessage: 'Internal Server Error'
+    });
+  }
+});
+
+
+app.get('/sortByRating', async (req, res) => {
+    /* Sorts books by rating */
+    try {
+    const { first_name, surname } = req.query;
+
+    let books = [];
+    let user = null;
+    let user_id = null;
+    let errorMessage = null;
+
+    // Get books (all or by user)
+    try {
+      books = await sortByRating({ first_name, surname });
+    } catch (err) {
+      errorMessage = err.message;
+    }
+
+    // Try to resolve user if names are provided
+    if (first_name && surname) {
+      const userResult = await getUser({ first_name, surname });
+
+      if (userResult.success) {
+        user = userResult.user;
+        user_id = user.id;
+      } else {
+        // fallback to null, no crash
+        errorMessage = userResult.message || errorMessage;
+      }
+    }
+
+    return res.render('index', {
+      books,
+      first_name: first_name || '',
+      surname: surname || '',
+      user_id,
+      activePage: 'home',
+      errorMessage
+    });
+
+  } catch (error) {
+    console.error('Error sorting books by rating:', error.stack);
+    res.status(500).render('index', {
+      books: [],
+      first_name: '',
+      surname: '',
+      user_id: null,
+      activePage: 'home',
+      errorMessage: 'Internal Server Error'
     });
   }
 });

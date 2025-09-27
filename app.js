@@ -354,37 +354,31 @@ app.get('/sortByYear', async (req, res) => {
 app.get('/sortByRating', async (req, res) => {
     /* Sorts books by rating */
     try {
-    const { first_name, surname } = req.query;
+    const { first_name, surname} = req.query;
 
     let books = [];
     let user = null;
     let user_id = null;
     let errorMessage = null;
 
-    // Get books (all or by user)
-    try {
-      books = await sortByRating({ first_name, surname });
-    } catch (err) {
-      errorMessage = err.message;
+    const result = await sortByRating({ first_name, surname });
+
+    if (!result.success) {
+      // Something went wrong — either no user, or no books
+      errorMessage = result.message || 'Failed to retrieve books';
     }
 
-    // Try to resolve user if names are provided
-    if (first_name && surname) {
-      const userResult = await getUser({ first_name, surname });
+    books = result.books || [];
 
-      if (userResult.success) {
-        user = userResult.user;
-        user_id = user.id;
-      } else {
-        // fallback to null, no crash
-        errorMessage = userResult.message || errorMessage;
-      }
+    if (result.user) {
+      user = result.user;
+      user_id = user.id;
     }
 
     return res.render('index', {
       books,
-      first_name: first_name || '',
-      surname: surname || '',
+      first_name,
+      surname,
       user_id,
       activePage: 'home',
       errorMessage
@@ -392,7 +386,8 @@ app.get('/sortByRating', async (req, res) => {
 
   } catch (error) {
     console.error('Error sorting books by rating:', error.stack);
-    res.status(500).render('index', {
+
+    return res.status(500).render('index', {
       books: [],
       first_name: '',
       surname: '',
@@ -402,6 +397,7 @@ app.get('/sortByRating', async (req, res) => {
     });
   }
 });
+
 
 app.post('/edit', async (req, res) => {
   const {

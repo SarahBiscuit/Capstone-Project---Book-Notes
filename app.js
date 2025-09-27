@@ -403,6 +403,71 @@ app.get('/sortByRating', async (req, res) => {
   }
 });
 
+app.post('/edit', async (req, res) => {
+  const {
+    book_id,
+    title,
+    author,
+    year_i_read_it,
+    my_rating,
+    guidance_notes,
+    user_id, // NOTE: must be passed from form as hidden input
+    first_name,
+    surname
+  } = req.body;
+
+  let books = [];
+  let errorMessage = null;
+
+  try {
+    // ✅ Attempt to edit the book
+    await editBook({
+      book_id,
+      title,
+      author,
+      year_i_read_it,
+      my_rating,
+      guidance_notes,
+      user_id
+    });
+  } catch (error) {
+    console.error('Error updating book:', error);
+    errorMessage = 'Failed to update book';
+  }
+
+  try {
+    // ✅ Get updated book list (sorted by rating or however your app expects)
+    const result = await sortByRating({ first_name, surname });
+
+    if (result.success) {
+      books = result.books;
+    } else {
+      errorMessage = result.message || errorMessage;
+    }
+
+    return res.render('index', {
+      books,
+      first_name,
+      surname,
+      user_id,
+      activePage: 'home',
+      errorMessage
+    });
+
+  } catch (error) {
+    console.error('Error fetching updated book list:', error.stack);
+    return res.status(500).render('index', {
+      books: [],
+      first_name,
+      surname,
+      user_id,
+      activePage: 'home',
+      errorMessage: 'Internal Server Error'
+    });
+  }
+});
+
+
 app.delete('/books/:book_id', async (req, res) => {
   try {
     const book_id = parseInt(req.params.book_id, 10);

@@ -524,20 +524,57 @@ export async function editBook({
 
 
 
-/* 10.  Function to delete a book item */
-// Function to delete an item by id
+// 10. Function to delete a book item
 export async function deleteItem(book_id, user_id) {
   if (!user_id) {
-    throw new Error('Missing user ID');
+    try {
+      const books = await getAllBooks(); // ✅ Fetch all books
+      return {
+        success: false,
+        message: 'No user ID provided – book not deleted. Returning all books instead.',
+        user: null,
+        books
+      };
+    } catch (error) {
+      console.error('Failed to fetch all books:', error);
+      return {
+        success: false,
+        message: 'Failed to fetch books after missing user ID',
+        error
+      };
+    }
   }
 
-  const query = `
-    DELETE FROM books 
-    WHERE book_id = $1 AND user_id = $2
-  `;
+  try {
+    const query = `
+      DELETE FROM books 
+      WHERE book_id = $1 AND user_id = $2
+    `;
 
-  await db.query(query, [book_id, user_id]);
+    const result = await db.query(query, [book_id, user_id]);
+
+    if (result.rowCount === 0) {
+      return {
+        success: false,
+        message: 'No matching book found to delete'
+      };
+    }
+
+    return {
+      success: true,
+      message: 'Book deleted successfully'
+    };
+
+  } catch (error) {
+    console.error('Error deleting book:', error);
+    return {
+      success: false,
+      message: 'Database error during deletion',
+      error
+    };
+  }
 }
+
 
 // 11. Function to get user by id
 export async function getUserById(user_id) {

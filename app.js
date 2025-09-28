@@ -467,12 +467,27 @@ app.post('/edit', async (req, res) => {
 
 
 app.delete('/books/:book_id', async (req, res) => {
-  try {
-    const book_id = parseInt(req.params.book_id, 10);
-    const user_id_raw = req.body.user_id;
+  const book_id = parseInt(req.params.book_id, 10);
+  const user_id_raw = req.body.user_id;
 
+  let books = [];
+  let errorMessage = null;
+
+  try {
     if (!user_id_raw) {
-      return res.status(400).send('Missing user info');
+      // Let deleteItem handle missing user_id case and return all books
+      const result = await deleteItem(book_id, null);
+      books = result.books || [];
+      errorMessage = result.message;
+
+      return res.render('index', {
+        books,
+        first_name: '',
+        surname: '',
+        user_id: null,
+        activePage: 'home',
+        errorMessage
+      });
     }
 
     // Parse user_id properly
@@ -481,35 +496,58 @@ app.delete('/books/:book_id', async (req, res) => {
       : user_id_raw;
 
     if (isNaN(user_id)) {
-      return res.status(400).send('Invalid user_id');
+      // Render homepage with error message instead of sending 400
+      const result = await getAllBooks();
+      books = result.success ? result.books : [];
+      errorMessage = 'Invalid user ID provided';
+
+      return res.render('index', {
+        books,
+        first_name: '',
+        surname: '',
+        user_id: null,
+        activePage: 'home',
+        errorMessage
+      });
     }
 
-    // getUserById probably expects user_id as a number (not an object)
     const user = await getUserById(user_id);
-
     if (!user) {
       return res.status(404).send('User not found');
     }
 
-    await deleteItem(book_id, user_id);
+    // Attempt to delete the book
+    const deleteResult = await deleteItem(book_id, user_id);
+    if (!deleteResult.success) {
+      errorMessage = deleteResult.message || 'Failed to delete book';
+    }
 
-    const result = await getAllBooks();
-    const books = result.success ? result.books : [];
-    const errorMessage = result.success ? null : result.message;
+    // Fetch updated books
+    const updatedBooks = await getAllBooks();
+    books = updatedBooks.books || [];
+    if (!updatedBooks.success && !errorMessage) {
+      errorMessage = updatedBooks.message || 'Could not retrieve updated books';
+    }
 
-  res.render('index', {
-  books,
-  first_name: '',
-  surname: '',
-  user_id: null,
-  activePage: 'home',
-  errorMessage
-});
-
+    return res.render('index', {
+      books,
+      first_name: user.first_name || '',
+      surname: user.surname || '',
+      user_id,
+      activePage: 'home',
+      errorMessage
+    });
 
   } catch (error) {
     console.error('Error deleting book:', error.stack);
-    res.status(500).send('Internal Server Error');
+    return res.status(500).render('index', {
+      books: [],
+      first_name: '',
+      surname: '',
+      user_id: null,
+      activePage: 'home',
+      errorMessage: 'Internal Server Error'
+    });
   }
 });
 

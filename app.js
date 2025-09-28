@@ -512,8 +512,18 @@ app.delete('/books/:book_id', async (req, res) => {
     }
 
     const user = await getUserById(user_id);
-    if (!user) {
-      return res.status(404).send('User not found');
+  if (!user) {
+    // Instead of 404, show error on homepage
+    const allBooksResult = await getAllBooks();
+    const books = allBooksResult.success ? allBooksResult.books : [];
+    return res.render('index', {
+      books,
+      first_name: '',
+      surname: '',
+      user_id: null,
+      activePage: 'home',
+      errorMessage: 'User not found'
+    });
     }
 
     // Attempt to delete the book

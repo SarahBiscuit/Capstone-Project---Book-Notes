@@ -411,7 +411,22 @@ export async function editBook({
   user_id          // ✅ Now passed directly instead of name
 }) {
   if (!user_id) {
-    throw new Error('Missing user ID');
+    try {
+      const books = await getAllBooks();  // ✅ Use your existing function
+      return {
+        success: false,
+        message: 'No user ID provided – returning all books instead of updating',
+        user: null,
+        books
+      };
+    } catch (error) {
+      console.error('Failed to fetch all books:', error);
+      return {
+        success: false,
+        message: 'Failed to fetch books',
+        error
+      };
+    }
   }
 
   const client = await db.connect();
@@ -495,9 +510,13 @@ export async function editBook({
 
     await client.query('COMMIT');
   } catch (error) {
-    await client.query('ROLLBACK');
-    console.error('editBook failed:', error);
-    throw error;
+     await client.query('ROLLBACK');
+  console.error('editBook failed:', error);
+  return {
+    success: false,
+    message: 'Failed to update book',
+    error
+  };
   } finally {
     client.release();
   }

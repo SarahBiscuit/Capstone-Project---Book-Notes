@@ -414,10 +414,11 @@ app.post('/edit', async (req, res) => {
 
   let books = [];
   let errorMessage = null;
+  let finalUserId = user_id; // we may need to null this if no user
 
   try {
-    // ✅ Attempt to edit the book
-    await editBook({
+    // ✅ Attempt to edit the book (or fetch all books if no user_id)
+    const editResult = await editBook({
       book_id,
       title,
       author,
@@ -426,42 +427,43 @@ app.post('/edit', async (req, res) => {
       guidance_notes,
       user_id
     });
-  } catch (error) {
-    console.error('Error updating book:', error);
-    errorMessage = 'Failed to update book';
-  }
 
-  try {
-    // ✅ Get updated book list (sorted by rating or however your app expects)
-    const result = await sortByRating({ first_name, surname });
+    if (editResult && !editResult.success && editResult.books) {
+      // ⚠️ No user_id provided — fallback case
+      books = editResult.books;
+      errorMessage = editResult.message || 'User not identified. Showing all books.';
+      finalUserId = null;
 
-    if (result.success) {
-      books = result.books;
+      if (!editResult) {
+        console.error('editBook() returned nothing or threw an uncaught error.');
+        errorMessage = 'Unexpected error during book update.';
+      }
     } else {
-      errorMessage = result.message || errorMessage;
+      // ✅ Successful update — now fetch the user's sorted book list
+      const result = await sortByRating({ first_name, surname });
+
+      if (result.success) {
+        books = result.books;
+      } else {
+        errorMessage = result.message || 'Could not sort books.';
+      }
     }
-
-    return res.render('index', {
-      books,
-      first_name,
-      surname,
-      user_id,
-      activePage: 'home',
-      errorMessage
-    });
-
   } catch (error) {
-    console.error('Error fetching updated book list:', error.stack);
-    return res.status(500).render('index', {
-      books: [],
-      first_name,
-      surname,
-      user_id,
-      activePage: 'home',
-      errorMessage: 'Internal Server Error'
-    });
+    console.error('Error in edit or fetch:', error);
+    errorMessage = 'Internal server error while editing or retrieving books';
   }
+
+  // ✅ Render the page regardless of success/failure
+  return res.render('index', {
+    books,
+    first_name,
+    surname,
+    user_id: finalUserId,
+    activePage: 'home',
+    errorMessage
+  });
 });
+
 
 
 app.delete('/books/:book_id', async (req, res) => {

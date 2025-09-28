@@ -99,37 +99,18 @@ app.get('/searchUser', async (req, res) => {
 app.post('/addBook', async (req, res) => {
   console.log("🛬 /addBook POST route was triggered");
 
-  let user = null;
   let books = [];
   let errorMessage = null;
+  let user = null;
+  let first_name = '';
+  let surname = '';
 
   try {
-    // Normalize input
-    let { title, author, year_i_read_it, my_rating, guidance_notes, first_name, surname } = req.body;
-    first_name = first_name.trim();
-    surname = surname.trim();
+    let { title, author, year_i_read_it, my_rating, guidance_notes } = req.body;
+    first_name = req.body.first_name.trim();
+    surname = req.body.surname.trim();
 
-    // Try to find the user
-    const userResult = await getUser({ first_name, surname });
-
-    if (!userResult.success) {
-      const allBooksResult = await getAllBooks();
-      books = allBooksResult.success ? allBooksResult.books : [];
-
-    return res.status(400).render('index', {
-      books,
-      first_name,
-      surname,
-      user_id: null,
-      activePage: 'home',
-      errorMessage: userResult.message
-    });
-    }
-
-    user = userResult.user;
-
-
-    // Try to add the book
+    // Call addNewBook which will handle user lookup internally
     const result = await addNewBook({
       title,
       author,
@@ -140,32 +121,37 @@ app.post('/addBook', async (req, res) => {
       surname
     });
 
-    if (result && result.success === false) {
-      // ❌ Book not added (duplicate etc.) → show user's existing books
-      const booksResult = await getBooksByUser({ first_name, surname });
-      books = booksResult.success ? booksResult.books : [];
+    if (!result.success) {
+      // User not found, duplicate, or other errors
+      // Show all books and the error message from addNewBook
+      const allBooksResult = await getAllBooks();
+      books = allBooksResult.success ? allBooksResult.books : [];
       errorMessage = result.message;
 
       return res.status(400).render('index', {
         books,
         first_name,
         surname,
-        user_id: user.id,
+        user_id: null,
         activePage: 'home',
         errorMessage
       });
     }
 
-    // ✅ Book added successfully → show updated user's books
+    // If success, fetch updated user books
     const booksResult = await getBooksByUser({ first_name, surname });
     books = booksResult.success ? booksResult.books : [];
     errorMessage = booksResult.success ? null : booksResult.message;
+
+    // To get user_id, fetch user or get from your db
+    const userResult = await getUser({ first_name, surname });
+    user = userResult.success ? userResult.user : null;
 
     return res.render('index', {
       books,
       first_name,
       surname,
-      user_id: user.id,
+      user_id: user ? user.id : null,
       activePage: 'home',
       errorMessage
     });
@@ -183,14 +169,15 @@ app.post('/addBook', async (req, res) => {
 
     return res.status(500).render('index', {
       books,
-      first_name: req.body.first_name || null,
-      surname: req.body.surname || null,
+      first_name,
+      surname,
       user_id: user ? user.id : null,
       activePage: 'home',
       errorMessage: `An unexpected error occurred: ${error.message}`
     });
   }
 });
+
 
 
 app.post('/addUser', async (req, res) => {
@@ -467,12 +454,27 @@ app.post('/edit', async (req, res) => {
 
 
 app.delete('/books/:book_id', async (req, res) => {
-  try {
-    const book_id = parseInt(req.params.book_id, 10);
-    const user_id_raw = req.body.user_id;
+  const book_id = parseInt(req.params.book_id, 10);
+  const user_id_raw = req.body.user_id;
 
+  let books = [];
+  let errorMessage = null;
+
+  try {
     if (!user_id_raw) {
-      return res.status(400).send('Missing user info');
+      // Let deleteItem handle missing user_id case and return all books
+      const result = await deleteItem(book_id, null);
+      books = result.books || [];
+      errorMessage = result.message;
+
+      return res.render('index', {
+        books,
+        first_name: '',
+        surname: '',
+        user_id: null,
+        activePage: 'home',
+        errorMessage
+      });
     }
 
     // Parse user_id properly
@@ -481,35 +483,68 @@ app.delete('/books/:book_id', async (req, res) => {
       : user_id_raw;
 
     if (isNaN(user_id)) {
-      return res.status(400).send('Invalid user_id');
+      // Render homepage with error message instead of sending 400
+      const result = await getAllBooks();
+      books = result.success ? result.books : [];
+      errorMessage = 'Invalid user ID provided';
+
+      return res.render('index', {
+        books,
+        first_name: '',
+        surname: '',
+        user_id: null,
+        activePage: 'home',
+        errorMessage
+      });
     }
 
-    // getUserById probably expects user_id as a number (not an object)
     const user = await getUserById(user_id);
-
-    if (!user) {
-      return res.status(404).send('User not found');
+  if (!user) {
+    // Instead of 404, show error on homepage
+    const allBooksResult = await getAllBooks();
+    const books = allBooksResult.success ? allBooksResult.books : [];
+    return res.render('index', {
+      books,
+      first_name: '',
+      surname: '',
+      user_id: null,
+      activePage: 'home',
+      errorMessage: 'User not found'
+    });
     }
 
-    await deleteItem(book_id, user_id);
+    // Attempt to delete the book
+    const deleteResult = await deleteItem(book_id, user_id);
+    if (!deleteResult.success) {
+      errorMessage = deleteResult.message || 'Failed to delete book';
+    }
 
-    const result = await getAllBooks();
-    const books = result.success ? result.books : [];
-    const errorMessage = result.success ? null : result.message;
+    // Fetch updated books
+    const updatedBooks = await getAllBooks();
+    books = updatedBooks.books || [];
+    if (!updatedBooks.success && !errorMessage) {
+      errorMessage = updatedBooks.message || 'Could not retrieve updated books';
+    }
 
-  res.render('index', {
-  books,
-  first_name: '',
-  surname: '',
-  user_id: null,
-  activePage: 'home',
-  errorMessage
-});
-
+    return res.render('index', {
+      books,
+      first_name: user.first_name || '',
+      surname: user.surname || '',
+      user_id,
+      activePage: 'home',
+      errorMessage
+    });
 
   } catch (error) {
     console.error('Error deleting book:', error.stack);
-    res.status(500).send('Internal Server Error');
+    return res.status(500).render('index', {
+      books: [],
+      first_name: '',
+      surname: '',
+      user_id: null,
+      activePage: 'home',
+      errorMessage: 'Internal Server Error'
+    });
   }
 });
 

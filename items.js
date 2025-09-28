@@ -29,7 +29,7 @@ export async function addNewBook({
     if (userResult.rowCount === 0) {
       return {
         success: false,
-        message: 'User not found with the provided first name and surname.'
+        message: 'User not found with the provided first name and surname.  All user books shown instead.'
       };
     }
 
@@ -53,7 +53,7 @@ export async function addNewBook({
     if (userBookMatch.rowCount > 0) {
       return {
         success: false,
-        message: `This book is already associated with the user ${first_name} ${surname}`
+        message: `This book is already associated with the user ${first_name} ${surname}.  All user books shown.`
       };
     }
 
@@ -123,7 +123,7 @@ export async function addNewUser({ first_name, surname }) {
     if (alreadyMatch.rowCount > 0) {
       return {
         success: false,
-        message: 'User already exists with the provided first name and surname'
+        message: 'User already exists with the provided first name and surname.  All user books shown instead.'
       };
     }
 
@@ -194,7 +194,7 @@ export async function getBooksByUser({ first_name, surname }) {
   if (result.rowCount === 0) {
     return {
       success: false,
-      message: 'No books found for the specified user',
+      message: 'No books found for the specified user.  All books shown instead.',
       books: []
     };
   }
@@ -228,6 +228,7 @@ export async function getAllUsers() {
   };
 }
 
+//6. Function to get user by name
 export async function getUser({ first_name, surname }) {
   const query = `
     SELECT id, first_name, surname
@@ -244,7 +245,7 @@ export async function getUser({ first_name, surname }) {
     if (result.rowCount === 0) {
       return {
         success: false,
-        message: 'No user found',
+        message: 'No user found.  Showing all user books instead.',
         user: null
       };
     }
@@ -298,7 +299,7 @@ export async function getUser({ first_name, surname }) {
   if (!user.success) {
     return {
       success: false,
-      message: 'User not found',
+      message: 'User not found.  Showing all user books instead.',
       user: null,
       books: []
     };
@@ -319,7 +320,7 @@ export async function getUser({ first_name, surname }) {
   if (userResult.rowCount === 0) {
     return {
       success: false,
-      message: 'No books found for this user',
+      message: 'No books found for this user.  Showing all user books instead.',
       user: user.user,
       books: []
     };
@@ -365,7 +366,7 @@ export async function getUser({ first_name, surname }) {
   if (!user.success) {
     return {
       success: false,
-      message: 'User not found',
+      message: 'User not found.  Showing all user books instead.',
       user: null,
       books: []
     };
@@ -386,7 +387,7 @@ export async function getUser({ first_name, surname }) {
   if (userResult.rowCount === 0) {
     return {
       success: false,
-      message: 'No books found for this user',
+      message: 'No books found for this user.  Showing all user books instead.',
       user: user.user,
       books: []
     };
@@ -524,20 +525,57 @@ export async function editBook({
 
 
 
-/* 10.  Function to delete a book item */
-// Function to delete an item by id
+// 10. Function to delete a book item
 export async function deleteItem(book_id, user_id) {
   if (!user_id) {
-    throw new Error('Missing user ID');
+    try {
+      const books = await getAllBooks(); // ✅ Fetch all books
+      return {
+        success: false,
+        message: 'No user ID provided – book not deleted. Returning all books instead.',
+        user: null,
+        books
+      };
+    } catch (error) {
+      console.error('Failed to fetch all books:', error);
+      return {
+        success: false,
+        message: 'Failed to fetch books after missing user ID',
+        error
+      };
+    }
   }
 
-  const query = `
-    DELETE FROM books 
-    WHERE book_id = $1 AND user_id = $2
-  `;
+  try {
+    const query = `
+      DELETE FROM books 
+      WHERE book_id = $1 AND user_id = $2
+    `;
 
-  await db.query(query, [book_id, user_id]);
+    const result = await db.query(query, [book_id, user_id]);
+
+    if (result.rowCount === 0) {
+      return {
+        success: false,
+        message: 'No matching book found to delete'
+      };
+    }
+
+    return {
+      success: true,
+      message: 'Book deleted successfully'
+    };
+
+  } catch (error) {
+    console.error('Error deleting book:', error);
+    return {
+      success: false,
+      message: 'Database error during deletion',
+      error
+    };
+  }
 }
+
 
 // 11. Function to get user by id
 export async function getUserById(user_id) {

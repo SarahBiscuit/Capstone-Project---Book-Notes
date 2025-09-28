@@ -99,37 +99,18 @@ app.get('/searchUser', async (req, res) => {
 app.post('/addBook', async (req, res) => {
   console.log("🛬 /addBook POST route was triggered");
 
-  let user = null;
   let books = [];
   let errorMessage = null;
+  let user = null;
+  let first_name = '';
+  let surname = '';
 
   try {
-    // Normalize input
-    let { title, author, year_i_read_it, my_rating, guidance_notes, first_name, surname } = req.body;
-    first_name = first_name.trim();
-    surname = surname.trim();
+    let { title, author, year_i_read_it, my_rating, guidance_notes } = req.body;
+    first_name = req.body.first_name.trim();
+    surname = req.body.surname.trim();
 
-    // Try to find the user
-    const userResult = await getUser({ first_name, surname });
-
-    if (!userResult.success) {
-      const allBooksResult = await getAllBooks();
-      books = allBooksResult.success ? allBooksResult.books : [];
-
-    return res.status(400).render('index', {
-      books,
-      first_name,
-      surname,
-      user_id: null,
-      activePage: 'home',
-      errorMessage: userResult.message
-    });
-    }
-
-    user = userResult.user;
-
-
-    // Try to add the book
+    // Call addNewBook which will handle user lookup internally
     const result = await addNewBook({
       title,
       author,
@@ -140,32 +121,37 @@ app.post('/addBook', async (req, res) => {
       surname
     });
 
-    if (result && result.success === false) {
-      // ❌ Book not added (duplicate etc.) → show user's existing books
-      const booksResult = await getBooksByUser({ first_name, surname });
-      books = booksResult.success ? booksResult.books : [];
+    if (!result.success) {
+      // User not found, duplicate, or other errors
+      // Show all books and the error message from addNewBook
+      const allBooksResult = await getAllBooks();
+      books = allBooksResult.success ? allBooksResult.books : [];
       errorMessage = result.message;
 
       return res.status(400).render('index', {
         books,
         first_name,
         surname,
-        user_id: user.id,
+        user_id: null,
         activePage: 'home',
         errorMessage
       });
     }
 
-    // ✅ Book added successfully → show updated user's books
+    // If success, fetch updated user books
     const booksResult = await getBooksByUser({ first_name, surname });
     books = booksResult.success ? booksResult.books : [];
     errorMessage = booksResult.success ? null : booksResult.message;
+
+    // To get user_id, fetch user or get from your db
+    const userResult = await getUser({ first_name, surname });
+    user = userResult.success ? userResult.user : null;
 
     return res.render('index', {
       books,
       first_name,
       surname,
-      user_id: user.id,
+      user_id: user ? user.id : null,
       activePage: 'home',
       errorMessage
     });
@@ -183,14 +169,15 @@ app.post('/addBook', async (req, res) => {
 
     return res.status(500).render('index', {
       books,
-      first_name: req.body.first_name || null,
-      surname: req.body.surname || null,
+      first_name,
+      surname,
       user_id: user ? user.id : null,
       activePage: 'home',
       errorMessage: `An unexpected error occurred: ${error.message}`
     });
   }
 });
+
 
 
 app.post('/addUser', async (req, res) => {

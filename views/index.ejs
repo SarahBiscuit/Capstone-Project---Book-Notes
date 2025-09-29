@@ -42,15 +42,17 @@
 
 <% /* Sort By Rating */ %>
            <form action="/sortByRating" method="GET" style="display:inline;">
-            <input type="hidden" name="user_id" value="<%= user_id %>">
+            <input type="hidden" name="first_name" value="<%= first_name %>">
+            <input type="hidden" name="surname" value="<%= surname %>">
             <button type="submit" class="btn btn-danger">Sort By Rating</button>
-           </form>
+          </form>
 
 <% /* Sort By Year Read */ %>
            <form action="/sortByYear" method="GET" style="display:inline;">
-            <input type="hidden" name="user_id" value="<%= user_id %>">
+            <input type="hidden" name="first_name" value="<%= first_name %>">
+            <input type="hidden" name="surname" value="<%= surname %>">
             <button type="submit" class="btn btn-danger">Sort By Year the User Read it in</button>
-           </form>
+          </form>
 
 <% /* For each function to generate bootstrap cards for each book.  Want to rewrite it as jquery. */ %>
 <div class="container mt-4">

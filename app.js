@@ -1,7 +1,6 @@
 //Main entry point for the application
 
 import express from "express";
-import axios from "axios";
 import methodOverride from 'method-override';
 
 import { addNewBook, addNewUser, getAllBooks, getBooksByUser, getAllUsers, getUser, sortByYearRead, sortByRating, editBook, deleteItem, getUserById } from './items.js';

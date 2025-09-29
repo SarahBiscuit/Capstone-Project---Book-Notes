@@ -162,6 +162,25 @@ export async function getAllBooks() {
   try {
     const result = await db.query(query);
 
+    /*Want to integrate an API to pull book cover images using the title and author */
+    if (result.rowCount === 0) {
+      return {
+        success: false,
+        message: 'No books found',
+        books: [] 
+      };
+      return {
+        success: true,
+        books: result.rows,
+        images: {
+          //Need to add my API call in here
+
+        }
+      }
+      }
+    }
+    
+
     return {
       success: true,
       books: result.rows

@@ -1,4 +1,25 @@
+import fetch from 'node-fetch'; 
 import db from './db.js';
+
+// Helper: get OLID from Open Library using title and author
+async function getOLID(title, author) {
+  const url = `https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}`;
+
+    try {
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (data.docs && data.docs.length > 0 && data.docs[0].edition_key) {
+      return data.docs[0].edition_key[0]; // return the first OLID
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error(`Error fetching OLID for "${title}" by "${author}":`, error);
+    return null;
+  }
+}
+
 
 /* 1.  Function to add a new book item */
 export async function addNewBook({

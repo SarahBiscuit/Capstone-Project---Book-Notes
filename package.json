@@ -17,6 +17,7 @@
     "express": "^5.1.0",
     "method-override": "^3.0.0",
     "node": "^22.18.0",
+    "node-fetch": "^2.7.0",
     "pg": "^8.16.3"
   }
 }

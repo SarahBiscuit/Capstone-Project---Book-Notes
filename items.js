@@ -199,7 +199,7 @@ export async function getAllBooks() {
   let coverImage = null;
 
   if (olid) {
-    const response = await fetch(`https://covers.openlibrary.org/b/olid/${olid}-M.jpg`);
+    const response = await fetch(`https://covers.openlibrary.org/b/olid/${olid}-S.jpg`);
     if (response.ok) {
       const buffer = await response.buffer();
 coverImage = `data:image/jpeg;base64,${buffer.toString('base64')}`;

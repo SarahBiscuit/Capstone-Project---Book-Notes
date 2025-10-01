@@ -62,7 +62,7 @@
   <% books.forEach(function(book) { %>
     <div class="col-lg-4 col-md-6 col-12 mb-4">
       <div class="card h-100">
-        <img src="<%= book.img || '' %>" class="card-img-top" alt="Book image">
+        <img src="<%= book.cover_image || '/images/default-cover.jpg' %>" class="card-img-top" alt="Book image">
         <div class="card-body">
           <h5 class="card-title"><b>Title:</b> <%= book.title || '' %></h5>
           <p class="card-text"><b>Author:</b> <%= book.author || '' %></p>

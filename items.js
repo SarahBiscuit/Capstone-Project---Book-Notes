@@ -183,9 +183,38 @@ export async function getAllBooks() {
   try {
     const result = await db.query(query);
 
+        if (result.rowCount === 0) {
+      return {
+        success: false,
+        message: 'Unable to load books at this time.',
+        books: []
+      };
+    }
+
+    //Fetch cover images for each book
+   const booksWithCovers = await Promise.all(result.rows.map(async (book) => {
+  
+  const olid = await getOLID(book.title, book.author);
+
+  let coverImage = null;
+
+  if (olid) {
+    const response = await fetch(`https://covers.openlibrary.org/b/olid/${olid}-M.jpg`);
+    if (response.ok) {
+      const buffer = await response.buffer();
+coverImage = `data:image/jpeg;base64,${buffer.toString('base64')}`;
+    }
+  }
+
+  return {
+    ...book,
+    cover_image: coverImage, // base64 image string
+  };
+}));
+
     return {
       success: true,
-      books: result.rows
+      books: booksWithCovers
     };
 
   } catch (error) {

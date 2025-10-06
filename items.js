@@ -5,12 +5,14 @@ import db from './db.js';
 async function getOLID(title, author) {
   const url = `https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}`;
 
+    console.log(url);
+
     try {
     const response = await fetch(url);
     const data = await response.json();
 
-    if (data.docs && data.docs.length > 0 && data.docs[0].edition_key) {
-      return data.docs[0].edition_key[0]; // return the first OLID
+    if (data.docs && data.docs.length > 0 && data.docs[0].cover_edition_key) {
+      return data.docs[0].cover_edition_key; // return the first OLID
     } else {
       return null;
     }
@@ -195,11 +197,13 @@ export async function getAllBooks() {
    const booksWithCovers = await Promise.all(result.rows.map(async (book) => {
   
   const olid = await getOLID(book.title, book.author);
+    console.log(olid);
 
   let coverImage = null;
 
   if (olid) {
-    const response = await fetch(`https://covers.openlibrary.org/b/olid/${olid}-S.jpg`);
+    const response = await fetch(`https://covers.openlibrary.org/b/olid/${olid}-L.jpg`);
+    console.log(olid, `https://covers.openlibrary.org/b/olid/${olid}-L.jpg`);
     if (response.ok) {
       const buffer = await response.buffer();
 coverImage = `data:image/jpeg;base64,${buffer.toString('base64')}`;

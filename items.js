@@ -22,6 +22,24 @@ async function getOLID(title, author) {
   }
 }
 
+//Get cover image helper function
+async function getCoverImage(title, author) {
+  const olid = await getOLID(title, author);
+  if (!olid) return null;
+
+  try {
+    const response = await fetch(`https://covers.openlibrary.org/b/olid/${olid}-L.jpg`);
+    if (!response.ok) return null;
+
+    const buffer = await response.buffer();
+    return `data:image/jpeg;base64,${buffer.toString('base64')}`;
+  } catch (err) {
+    console.error(`Error fetching cover for "${title}" by "${author}":`, err);
+    return null;
+  }
+}
+
+
 
 /* 1.  Function to add a new book item */
 export async function addNewBook({
@@ -177,15 +195,15 @@ export async function getAllBooks() {
   const query = `
     SELECT b.book_id, ta.author, ta.title, b.year_i_read_it, b.my_rating, b.guidance_notes, u.surname, u.first_name, b.user_id
     FROM books b
-    JOIN users u on b.user_id = u.id
-    JOIN titlesAuthors ta on b.book_id = ta.id
+    JOIN users u ON b.user_id = u.id
+    JOIN titlesAuthors ta ON b.book_id = ta.id
     ORDER BY u.surname ASC, u.first_name ASC, ta.author ASC, ta.title ASC;
   `;
 
   try {
     const result = await db.query(query);
 
-        if (result.rowCount === 0) {
+    if (result.rowCount === 0) {
       return {
         success: false,
         message: 'Unable to load books at this time.',
@@ -193,44 +211,31 @@ export async function getAllBooks() {
       };
     }
 
-    //Fetch cover images for each book
-   const booksWithCovers = await Promise.all(result.rows.map(async (book) => {
-  
-  const olid = await getOLID(book.title, book.author);
-    console.log(olid);
-
-  let coverImage = null;
-
-  if (olid) {
-    const response = await fetch(`https://covers.openlibrary.org/b/olid/${olid}-L.jpg`);
-    console.log(olid, `https://covers.openlibrary.org/b/olid/${olid}-L.jpg`);
-    if (response.ok) {
-      const buffer = await response.buffer();
-coverImage = `data:image/jpeg;base64,${buffer.toString('base64')}`;
-    }
-  }
-
-  return {
-    ...book,
-    cover_image: coverImage, // base64 image string
-  };
-}));
+    // Fetch cover image for each book using helper
+    const booksWithCovers = await Promise.all(
+      result.rows.map(async (book) => {
+        const cover_image = await getCoverImage(book.title, book.author);
+        return {
+          ...book,
+          cover_image
+        };
+      })
+    );
 
     return {
       success: true,
       books: booksWithCovers
     };
-
   } catch (error) {
     console.error("Error in getAllBooks:", error);
-
     return {
       success: false,
       message: "Unable to load books at this time.",
-      books: [] // optional: provide fallback empty array
+      books: []
     };
   }
 }
+
 
 /* 4.  Function to get all book items for a specific user */
 export async function getBooksByUser({ first_name, surname }) {
@@ -242,20 +247,30 @@ export async function getBooksByUser({ first_name, surname }) {
     WHERE UPPER(TRIM(u.first_name)) ILIKE UPPER(TRIM($1)) AND UPPER(TRIM(u.surname)) ILIKE UPPER(TRIM($2))
     ORDER BY u.surname ASC, u.first_name ASC, ta.author ASC, ta.title ASC;
   `;
-  
+
   const result = await db.query(query, [first_name, surname]);
-  
+
   if (result.rowCount === 0) {
     return {
       success: false,
-      message: 'No books found for the specified user.  All books shown instead.',
+      message: 'No books found for the specified user. All books shown instead.',
       books: []
     };
   }
 
+  // Fetch cover images for each book using getCoverImage
+  const booksWithCovers = await Promise.all(result.rows.map(async (book) => {
+    const coverImage = await getCoverImage(book.title, book.author);
+
+    return {
+      ...book,
+      cover_image: coverImage, // base64 image string or null
+    };
+  }));
+
   return {
     success: true,
-    books: result.rows
+    books: booksWithCovers
   };
 }
 

@@ -507,22 +507,24 @@ export async function sortByRating ({ first_name, surname }) {
 
 /* 9.  Function to edit a book item */
 export async function editBook({
-  book_id,         // ID from 'books' table
+  book_id,
   title,
   author,
   year_i_read_it,
   my_rating,
   guidance_notes,
-  user_id          // ✅ Now passed directly instead of name
+  user_id
 }) {
   if (!user_id) {
     try {
-      const books = await getAllBooks();  // ✅ Use your existing function
+      const books = await getAllBooks();
+      const booksWithCoverImages = await booksWithCovers(books);
+
       return {
         success: false,
         message: 'No user ID provided – returning all books instead of updating',
         user: null,
-        books
+        books: booksWithCoverImages
       };
     } catch (error) {
       console.error('Failed to fetch all books:', error);
@@ -539,19 +541,17 @@ export async function editBook({
   try {
     await client.query('BEGIN');
 
-    let newTitlesAuthorsId;
+    let newTitlesAuthorsId = null;
 
-    // If both title and author are provided, we're updating the book reference
     if (title && author) {
+      const titleTrimmed = title.trim();
+      const authorTrimmed = author.trim();
+
       const checkQuery = `
         SELECT id FROM titlesAuthors
         WHERE TRIM(title) ILIKE TRIM($1)
           AND TRIM(author) ILIKE TRIM($2)
       `;
-
-      const titleTrimmed = title.trim();
-      const authorTrimmed = author.trim();
-
       const result = await client.query(checkQuery, [titleTrimmed, authorTrimmed]);
 
       if (result.rowCount > 0) {
@@ -566,7 +566,6 @@ export async function editBook({
         newTitlesAuthorsId = insertResult.rows[0].id;
       }
 
-      // ✅ Update the books table to reference the new title-author ID
       const updateBooksQuery = `
         UPDATE books
         SET
@@ -586,7 +585,6 @@ export async function editBook({
         user_id
       ]);
 
-      // ✅ Ensure entry exists in userReads
       const insertUserReadsQuery = `
         INSERT INTO userReads (user_id, book_id)
         VALUES ($1, $2)
@@ -594,7 +592,6 @@ export async function editBook({
       `;
       await client.query(insertUserReadsQuery, [user_id, newTitlesAuthorsId]);
     } else {
-      // ✅ No title/author change, just update the book record
       const updateOnlyBookDetailsQuery = `
         UPDATE books
         SET
@@ -614,19 +611,22 @@ export async function editBook({
     }
 
     await client.query('COMMIT');
+    return {
+      success: true,
+      message: 'Book updated successfully'
+    };
   } catch (error) {
-     await client.query('ROLLBACK');
-  console.error('editBook failed:', error);
-  return {
-    success: false,
-    message: 'Failed to update book',
-    error
-  };
+    await client.query('ROLLBACK');
+    console.error('editBook failed:', error);
+    return {
+      success: false,
+      message: 'Failed to update book',
+      error
+    };
   } finally {
     client.release();
   }
 }
-
 
 
 // 10. Function to delete a book item

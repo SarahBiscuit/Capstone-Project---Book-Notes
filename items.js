@@ -1,4 +1,45 @@
+import fetch from 'node-fetch'; 
 import db from './db.js';
+
+// Helper: get OLID from Open Library using title and author
+async function getOLID(title, author) {
+  const url = `https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}`;
+
+    console.log(url);
+
+    try {
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (data.docs && data.docs.length > 0 && data.docs[0].cover_edition_key) {
+      return data.docs[0].cover_edition_key; // return the first OLID
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error(`Error fetching OLID for "${title}" by "${author}":`, error);
+    return null;
+  }
+}
+
+//Get cover image helper function
+async function getCoverImage(title, author) {
+  const olid = await getOLID(title, author);
+  if (!olid) return null;
+
+  try {
+    const response = await fetch(`https://covers.openlibrary.org/b/olid/${olid}-L.jpg`);
+    if (!response.ok) return null;
+
+    const buffer = await response.buffer();
+    return `data:image/jpeg;base64,${buffer.toString('base64')}`;
+  } catch (err) {
+    console.error(`Error fetching cover for "${title}" by "${author}":`, err);
+    return null;
+  }
+}
+
+
 
 /* 1.  Function to add a new book item */
 export async function addNewBook({
@@ -154,8 +195,8 @@ export async function getAllBooks() {
   const query = `
     SELECT b.book_id, ta.author, ta.title, b.year_i_read_it, b.my_rating, b.guidance_notes, u.surname, u.first_name, b.user_id
     FROM books b
-    JOIN users u on b.user_id = u.id
-    JOIN titlesAuthors ta on b.book_id = ta.id
+    JOIN users u ON b.user_id = u.id
+    JOIN titlesAuthors ta ON b.book_id = ta.id
     ORDER BY u.surname ASC, u.first_name ASC, ta.author ASC, ta.title ASC;
   `;
 
@@ -164,19 +205,18 @@ export async function getAllBooks() {
 
     return {
       success: true,
-      books: result.rows
+      books: booksWithCovers
     };
-
   } catch (error) {
     console.error("Error in getAllBooks:", error);
-
     return {
       success: false,
       message: "Unable to load books at this time.",
-      books: [] // optional: provide fallback empty array
+      books: []
     };
   }
 }
+
 
 /* 4.  Function to get all book items for a specific user */
 export async function getBooksByUser({ first_name, surname }) {
@@ -188,20 +228,30 @@ export async function getBooksByUser({ first_name, surname }) {
     WHERE UPPER(TRIM(u.first_name)) ILIKE UPPER(TRIM($1)) AND UPPER(TRIM(u.surname)) ILIKE UPPER(TRIM($2))
     ORDER BY u.surname ASC, u.first_name ASC, ta.author ASC, ta.title ASC;
   `;
-  
+
   const result = await db.query(query, [first_name, surname]);
-  
+
   if (result.rowCount === 0) {
     return {
       success: false,
-      message: 'No books found for the specified user.  All books shown instead.',
+      message: 'No books found for the specified user. All books shown instead.',
       books: []
     };
   }
 
+  // Fetch cover images for each book using getCoverImage
+  const booksWithCovers = await Promise.all(result.rows.map(async (book) => {
+    const coverImage = await getCoverImage(book.title, book.author);
+
+    return {
+      ...book,
+      cover_image: coverImage, // base64 image string or null
+    };
+  }));
+
   return {
     success: true,
-    books: result.rows
+    books: booksWithCovers
   };
 }
 
@@ -267,7 +317,20 @@ export async function getUser({ first_name, surname }) {
 
 
 //7. Function to sort books by year read   
- export async function sortByYearRead({ first_name, surname }) {
+export async function sortByYearRead({ first_name, surname }) {
+  // Helper function to fetch covers for books
+  async function booksWithCovers(books) {
+    return await Promise.all(
+      books.map(async (book) => {
+        const coverImage = await getCoverImage(book.title, book.author);
+        return {
+          ...book,
+          cover_image: coverImage, // base64 image string or null
+        };
+      })
+    );
+  }
+
   // CASE 1: No user provided – return all books
   if (!first_name || !surname) {
     const query = `
@@ -287,9 +350,11 @@ export async function getUser({ first_name, surname }) {
       };
     }
 
+    const booksWithCoverImages = await booksWithCovers(result.rows);
+
     return {
       success: true,
-      books: result.rows
+      books: booksWithCoverImages
     };
   }
 
@@ -299,7 +364,7 @@ export async function getUser({ first_name, surname }) {
   if (!user.success) {
     return {
       success: false,
-      message: 'User not found.  Showing all user books instead.',
+      message: 'User not found. Showing all user books instead.',
       user: null,
       books: []
     };
@@ -320,21 +385,37 @@ export async function getUser({ first_name, surname }) {
   if (userResult.rowCount === 0) {
     return {
       success: false,
-      message: 'No books found for this user.  Showing all user books instead.',
+      message: 'No books found for this user. Showing all user books instead.',
       user: user.user,
       books: []
     };
   }
 
+  const userBooksWithCoverImages = await booksWithCovers(userResult.rows);
+
   return {
     success: true,
     user: user.user,
-    books: userResult.rows
+    books: userBooksWithCoverImages
   };
 }
 
-//8. Function to sort books by rating
- export async function sortByRating({ first_name, surname }) {
+
+//8. Function to sort books by rating   
+export async function sortByRating ({ first_name, surname }) {
+  // Helper function to fetch covers for books
+  async function booksWithCovers(books) {
+    return await Promise.all(
+      books.map(async (book) => {
+        const coverImage = await getCoverImage(book.title, book.author);
+        return {
+          ...book,
+          cover_image: coverImage, // base64 image string or null
+        };
+      })
+    );
+  }
+
   // CASE 1: No user provided – return all books
   if (!first_name || !surname) {
     const query = `
@@ -354,9 +435,11 @@ export async function getUser({ first_name, surname }) {
       };
     }
 
+    const booksWithCoverImages = await booksWithCovers(result.rows);
+
     return {
       success: true,
-      books: result.rows
+      books: booksWithCoverImages
     };
   }
 
@@ -366,7 +449,7 @@ export async function getUser({ first_name, surname }) {
   if (!user.success) {
     return {
       success: false,
-      message: 'User not found.  Showing all user books instead.',
+      message: 'User not found. Showing all user books instead.',
       user: null,
       books: []
     };
@@ -387,38 +470,42 @@ export async function getUser({ first_name, surname }) {
   if (userResult.rowCount === 0) {
     return {
       success: false,
-      message: 'No books found for this user.  Showing all user books instead.',
+      message: 'No books found for this user. Showing all user books instead.',
       user: user.user,
       books: []
     };
   }
 
+  const userBooksWithCoverImages = await booksWithCovers(userResult.rows);
+
   return {
     success: true,
     user: user.user,
-    books: userResult.rows
+    books: userBooksWithCoverImages
   };
 }
 
 
 /* 9.  Function to edit a book item */
 export async function editBook({
-  book_id,         // ID from 'books' table
+  book_id,
   title,
   author,
   year_i_read_it,
   my_rating,
   guidance_notes,
-  user_id          // ✅ Now passed directly instead of name
+  user_id
 }) {
   if (!user_id) {
     try {
-      const books = await getAllBooks();  // ✅ Use your existing function
+      const books = await getAllBooks();
+      const booksWithCoverImages = await booksWithCovers(books);
+
       return {
         success: false,
         message: 'No user ID provided – returning all books instead of updating',
         user: null,
-        books
+        books: booksWithCoverImages
       };
     } catch (error) {
       console.error('Failed to fetch all books:', error);
@@ -435,19 +522,17 @@ export async function editBook({
   try {
     await client.query('BEGIN');
 
-    let newTitlesAuthorsId;
+    let newTitlesAuthorsId = null;
 
-    // If both title and author are provided, we're updating the book reference
     if (title && author) {
+      const titleTrimmed = title.trim();
+      const authorTrimmed = author.trim();
+
       const checkQuery = `
         SELECT id FROM titlesAuthors
         WHERE TRIM(title) ILIKE TRIM($1)
           AND TRIM(author) ILIKE TRIM($2)
       `;
-
-      const titleTrimmed = title.trim();
-      const authorTrimmed = author.trim();
-
       const result = await client.query(checkQuery, [titleTrimmed, authorTrimmed]);
 
       if (result.rowCount > 0) {
@@ -462,7 +547,6 @@ export async function editBook({
         newTitlesAuthorsId = insertResult.rows[0].id;
       }
 
-      // ✅ Update the books table to reference the new title-author ID
       const updateBooksQuery = `
         UPDATE books
         SET
@@ -482,7 +566,6 @@ export async function editBook({
         user_id
       ]);
 
-      // ✅ Ensure entry exists in userReads
       const insertUserReadsQuery = `
         INSERT INTO userReads (user_id, book_id)
         VALUES ($1, $2)
@@ -490,7 +573,6 @@ export async function editBook({
       `;
       await client.query(insertUserReadsQuery, [user_id, newTitlesAuthorsId]);
     } else {
-      // ✅ No title/author change, just update the book record
       const updateOnlyBookDetailsQuery = `
         UPDATE books
         SET
@@ -510,19 +592,22 @@ export async function editBook({
     }
 
     await client.query('COMMIT');
+    return {
+      success: true,
+      message: 'Book updated successfully'
+    };
   } catch (error) {
-     await client.query('ROLLBACK');
-  console.error('editBook failed:', error);
-  return {
-    success: false,
-    message: 'Failed to update book',
-    error
-  };
+    await client.query('ROLLBACK');
+    console.error('editBook failed:', error);
+    return {
+      success: false,
+      message: 'Failed to update book',
+      error
+    };
   } finally {
     client.release();
   }
 }
-
 
 
 // 10. Function to delete a book item

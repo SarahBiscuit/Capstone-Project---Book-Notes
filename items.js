@@ -336,7 +336,6 @@ export async function getUser({ first_name, surname }) {
 
 
 //7. Function to sort books by year read   
- //7. Function to sort books by year read with cover images
 export async function sortByYearRead({ first_name, surname }) {
   // Helper function to fetch covers for books
   async function booksWithCovers(books) {
@@ -421,8 +420,21 @@ export async function sortByYearRead({ first_name, surname }) {
 }
 
 
-//8. Function to sort books by rating
- export async function sortByRating({ first_name, surname }) {
+//8. Function to sort books by rating   
+export async function sortByRating ({ first_name, surname }) {
+  // Helper function to fetch covers for books
+  async function booksWithCovers(books) {
+    return await Promise.all(
+      books.map(async (book) => {
+        const coverImage = await getCoverImage(book.title, book.author);
+        return {
+          ...book,
+          cover_image: coverImage, // base64 image string or null
+        };
+      })
+    );
+  }
+
   // CASE 1: No user provided – return all books
   if (!first_name || !surname) {
     const query = `
@@ -442,9 +454,11 @@ export async function sortByYearRead({ first_name, surname }) {
       };
     }
 
+    const booksWithCoverImages = await booksWithCovers(result.rows);
+
     return {
       success: true,
-      books: result.rows
+      books: booksWithCoverImages
     };
   }
 
@@ -454,7 +468,7 @@ export async function sortByYearRead({ first_name, surname }) {
   if (!user.success) {
     return {
       success: false,
-      message: 'User not found.  Showing all user books instead.',
+      message: 'User not found. Showing all user books instead.',
       user: null,
       books: []
     };
@@ -475,16 +489,18 @@ export async function sortByYearRead({ first_name, surname }) {
   if (userResult.rowCount === 0) {
     return {
       success: false,
-      message: 'No books found for this user.  Showing all user books instead.',
+      message: 'No books found for this user. Showing all user books instead.',
       user: user.user,
       books: []
     };
   }
 
+  const userBooksWithCoverImages = await booksWithCovers(userResult.rows);
+
   return {
     success: true,
     user: user.user,
-    books: userResult.rows
+    books: userBooksWithCoverImages
   };
 }
 

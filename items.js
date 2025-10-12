@@ -203,25 +203,6 @@ export async function getAllBooks() {
   try {
     const result = await db.query(query);
 
-    if (result.rowCount === 0) {
-      return {
-        success: false,
-        message: 'Unable to load books at this time.',
-        books: []
-      };
-    }
-
-    // Fetch cover image for each book using helper
-    const booksWithCovers = await Promise.all(
-      result.rows.map(async (book) => {
-        const cover_image = await getCoverImage(book.title, book.author);
-        return {
-          ...book,
-          cover_image
-        };
-      })
-    );
-
     return {
       success: true,
       books: booksWithCovers

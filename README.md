@@ -26,3 +26,15 @@ EJS
 HTML
 CSS 
 Bootstrap
+
+ENVIRONMENT VARIABLES 
+
+Make sure to create a .env file in the root directory with any necessary configuration variables such as database credentials or API keys.
+
+CONTRIBUTING 
+
+Feel free to fork the repository and submit pull requests. For major changes, please open an issue first to discuss what you would like to change.
+
+LICENSE
+
+This project is licensed under the MIT License.

@@ -1,4 +1,3 @@
-// db.js
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -6,12 +5,20 @@ import pg from 'pg';
 const { Pool } = pg;
 
 const db = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
-  max: 30, // optional: max connections in the pool
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,  // Neon requires this for SSL
+  },
+  max: 30, // optional, max connections
+});
+
+db.on('connect', () => {
+  console.log('Connected to Neon database');
+});
+
+db.on('error', (err) => {
+  console.error('Unexpected error on idle client', err);
+  process.exit(-1);
 });
 
 export default db;
